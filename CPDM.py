@@ -1,43 +1,8 @@
-import pandas as pd
 import numpy as np
-
-import seaborn as sns
-import matplotlib.pyplot as plt
-
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-
-from sklearn.neighbors import KNeighborsRegressor
-from sklearn.linear_model import Ridge, BayesianRidge
-from sklearn.kernel_ridge import KernelRidge
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
-
-from skopt import BayesSearchCV
-from skopt.space import Real, Categorical, Integer
-
-from sklearn.model_selection import GridSearchCV, KFold
-from sklearn.metrics import mean_squared_error
-
-from crepes import ConformalPredictiveSystem
 from crepes import WrapRegressor
-
-from online_cp.CPS import RidgePredictionMachine
-from online_cp.CPS import NearestNeighboursPredictionMachine
 from tqdm.notebook import tqdm
 from online_cp.martingale import PluginMartingale
-
 from copy import deepcopy
-
-from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
-
-from scipy.stats import skew, kurtosis
-import scipy.stats as stats
-from scipy.special import expit
-
-
-## Inductive Conformal Prediction
 
 
 class CPDM:

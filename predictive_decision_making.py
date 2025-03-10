@@ -2,7 +2,8 @@ import numpy as np
 from copy import deepcopy
 
 
-class Predictive_decision_making:
+class PredictiveDecisionMaking:
+    @staticmethod
     def inductive_predictive_decision_making(
         Decisions, X_train, y_train, X_test, y_test, utility_func, model, threshold
     ):
@@ -13,6 +14,7 @@ class Predictive_decision_making:
         average_utility = np.cumsum(utilities) / np.arange(1, len(utilities) + 1)
         return decisions_made, average_utility
 
+    @staticmethod
     def online_predictive_decision_making(
         Decisions, X_train, y_train, X_test, y_test, utility_func, model, threshold
     ):

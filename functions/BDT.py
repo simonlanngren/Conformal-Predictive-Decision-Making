@@ -81,7 +81,7 @@ class BDT:
 
             expected_utilities_d = []
 
-            for i in tqdm(range(1, len(X_test)), desc="Processing Samples"):
+            for i in tqdm(range(len(X_test)), desc="Processing Samples"):
                 model_i = deepcopy(model)
 
                 model_i.fit(X_seen, y_seen)

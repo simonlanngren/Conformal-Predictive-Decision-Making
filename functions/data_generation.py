@@ -16,7 +16,7 @@ class DataGeneration:
         raw_Y = X @ beta  # Linear combination
 
         # Rank transformation to spread values evenly
-        Y = Y = expit(raw_Y)
+        Y = expit(raw_Y)
 
         df = pd.DataFrame(X, columns=[f"Feature_{i}" for i in range(F)])
         df["Target"] = Y

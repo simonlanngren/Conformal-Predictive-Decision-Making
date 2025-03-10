@@ -5,7 +5,7 @@ from copy import deepcopy
 class PredictiveDecisionMaking:
     @staticmethod
     def inductive_predictive_decision_making(
-        Decisions, X_train, y_train, X_test, y_test, utility_func, model, threshold
+        X_train, y_train, X_test, y_test, utility_func, model, threshold
     ):
         model.fit(X_train, y_train)
         y_pred = model.predict(X_test)
@@ -16,7 +16,7 @@ class PredictiveDecisionMaking:
 
     @staticmethod
     def online_predictive_decision_making(
-        Decisions, X_train, y_train, X_test, y_test, utility_func, model, threshold
+        X_train, y_train, X_test, y_test, utility_func, model, threshold
     ):
         X_seen = X_train
         y_seen = y_train

@@ -3,6 +3,8 @@ from crepes import WrapRegressor
 from tqdm.notebook import tqdm
 from online_cp.martingale import PluginMartingale
 from copy import deepcopy
+from online_cp.CPS import NearestNeighboursPredictionMachine
+from sklearn.model_selection import KFold
 
 
 class CPDM:
@@ -129,8 +131,22 @@ class CPDM:
             cps_d = deepcopy(cps)
 
             # Create the new sequences
-            y_train_d = CPDM.create_utility_sequence(y_train, d, utility_func)
-            y_test_d = CPDM.create_utility_sequence(y_test, d, utility_func)
+            y_train_d = CPDM.create_utility_sequence(y_train, d, utility_func).astype(
+                float
+            )
+            y_test_d = CPDM.create_utility_sequence(y_test, d, utility_func).astype(
+                float
+            )
+
+            # Add small noise if the type condition is met
+            if isinstance(cps, NearestNeighboursPredictionMachine):
+                y_train_d += np.random.normal(scale=1e-6, size=y_train_d.shape)
+                y_test_d += np.random.normal(scale=1e-6, size=y_test_d.shape)
+
+                # hyperparameter tuning for k
+                # best_k = CPDM.KFold_knn(X_train, y_train_d, epsilon)
+                # cps_d = NearestNeighboursPredictionMachine(k=best_k)  # Use optimal k
+            cps_d = deepcopy(cps)
 
             cps_d.learn_initial_training_set(X_train, y_train_d)
 
@@ -213,3 +229,38 @@ class CPDM:
             average_utility.append(cumulative_sum / i)
 
         return decisions_made, average_utility, res
+
+    # Might need later
+    @staticmethod
+    def KFold_knn(X_train, y_train, epsilon, k_values=[1, 5, 10]):
+        best_k, best_score = None, float("inf")
+
+        kf = KFold(n_splits=5, shuffle=True, random_state=2025)
+
+        for k in k_values:
+            cv_errors = []
+
+            for train_idx, val_idx in kf.split(X_train):
+                X_train_cv, X_val_cv = X_train[train_idx], X_train[val_idx]
+                y_train_cv, y_val_cv = y_train[train_idx], y_train[val_idx]
+
+                # Train model with current k
+                cps_cv = NearestNeighboursPredictionMachine(k=k)
+                cps_cv.learn_initial_training_set(X_train_cv, y_train_cv)
+
+                errors = []
+                for x, y in zip(X_val_cv, y_val_cv):
+                    tau = np.random.uniform(0, 1)
+                    cpd = cps_cv.predict_cpd(x=x)
+                    Gamma = cpd.predict_set(tau=tau, epsilon=epsilon)
+                    errors.append(cpd.err(Gamma=Gamma, y=y))
+
+                cv_errors.append(np.mean(errors))
+
+            avg_error = np.mean(cv_errors)
+            if avg_error < best_score:
+                best_score = avg_error
+                best_k = k
+
+        print(f"Best k found: {best_k} with error: {best_score:.4f}")
+        return best_k

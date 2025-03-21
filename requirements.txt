@@ -9,4 +9,5 @@ tqdm
 crepes
 scikit-optimize
 online-cp
-jupyter ipywidgets
+jupyter 
+ipywidgets

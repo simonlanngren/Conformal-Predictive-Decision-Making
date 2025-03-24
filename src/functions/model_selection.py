@@ -1,8 +1,9 @@
 from sklearn.model_selection import GridSearchCV, KFold
 from skopt import BayesSearchCV
-
+from checkpointer import checkpoint
 
 class ModelSelection:
+    @checkpoint
     @staticmethod
     def model_selection(
         X_train,
@@ -32,6 +33,7 @@ class ModelSelection:
 
         return best_params, best_score
 
+    @checkpoint
     @staticmethod
     def bayesian_model_selection(
         X_train,

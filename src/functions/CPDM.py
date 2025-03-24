@@ -146,7 +146,6 @@ class CPDM:
                 # hyperparameter tuning for k
                 # best_k = CPDM.KFold_knn(X_train, y_train_d, epsilon)
                 # cps_d = NearestNeighboursPredictionMachine(k=best_k)  # Use optimal k
-            cps_d = deepcopy(cps)
 
             cps_d.learn_initial_training_set(X_train, y_train_d)
 
@@ -206,9 +205,7 @@ class CPDM:
                 res[idx, i, 2] = label
                 res[idx, i, 3] = err
                 res[idx, i, 4] = Err
-                res[idx, i, 5] = cpd.width(
-                    Gamma
-                )  # Simple efficiency criterion for interval predictions
+                res[idx, i, 5] = cpd.width(Gamma)  # Simple efficiency criterion for interval predictions
                 res[idx, i, 6] = martingale.logM
                 res[idx, i, 7] = median
 

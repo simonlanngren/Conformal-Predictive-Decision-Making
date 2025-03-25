@@ -11,7 +11,7 @@ class ModelSelection:
         estimator,
         param_grid,
         n_splits=5,
-        random_state=43,
+        random_state=2025,
         n_jobs=-1,
         verbose=2,
         scoring="neg_mean_squared_error",
@@ -30,40 +30,6 @@ class ModelSelection:
 
         best_params = grid_search.best_params_
         best_score = grid_search.best_score_
-
-        return best_params, best_score
-
-    @checkpoint
-    @staticmethod
-    def bayesian_model_selection(
-        X_train,
-        y_train,
-        estimator,
-        search_space,
-        n_splits=5,
-        random_state=43,
-        n_jobs=-1,
-        n_points=1,
-        verbose=2,
-        scoring="neg_mean_squared_error",
-        n_iter=100,
-    ):
-        cv = KFold(n_splits=n_splits, shuffle=True, random_state=random_state)
-
-        opt = BayesSearchCV(
-            estimator=estimator,
-            search_spaces=search_space,
-            n_iter=n_iter,
-            scoring=scoring,
-            n_jobs=n_jobs,
-            n_points=n_points,
-            cv=cv,
-            random_state=random_state,
-        )
-        opt.fit(X_train, y_train)
-
-        best_params = opt.best_params_
-        best_score = opt.best_score_
 
         return best_params, best_score
 

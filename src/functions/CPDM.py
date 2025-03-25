@@ -128,8 +128,6 @@ class CPDM:
         expected_utilities = []
 
         for idx, d in enumerate(Decisions):
-            cps_d = deepcopy(cps)
-
             # Create the new sequences
             y_train_d = CPDM.create_utility_sequence(y_train, d, utility_func).astype(
                 float
@@ -137,6 +135,9 @@ class CPDM:
             y_test_d = CPDM.create_utility_sequence(y_test, d, utility_func).astype(
                 float
             )
+            
+            X_seen = X_train
+            y_seen = y_train_d
 
             # Add small noise if the type condition is met
             if isinstance(cps, NearestNeighboursPredictionMachine):
@@ -144,10 +145,14 @@ class CPDM:
                 y_test_d += np.random.normal(scale=1e-6, size=y_test_d.shape)
 
                 # hyperparameter tuning for k
-                # best_k = CPDM.KFold_knn(X_train, y_train_d, epsilon)
-                # cps_d = NearestNeighboursPredictionMachine(k=best_k)  # Use optimal k
+                #best_k = CPDM.KFold_knn(X_seen, y_seen, epsilon)
+                best_k = 5
+                cps_d = NearestNeighboursPredictionMachine(k=best_k)  # Use optimal k
+                
+            else:
+                cps_d = deepcopy(cps)
 
-            cps_d.learn_initial_training_set(X_train, y_train_d)
+            cps_d.learn_initial_training_set(X_seen, y_seen)
 
             martingale = PluginMartingale(warning_level=100)
 
@@ -208,7 +213,17 @@ class CPDM:
                 res[idx, i, 5] = cpd.width(Gamma)  # Simple efficiency criterion for interval predictions
                 res[idx, i, 6] = martingale.logM
                 res[idx, i, 7] = median
+                
+                # Update X_seen and y_seen to fo hyperparameter tuning for knn
+                if isinstance(cps, NearestNeighboursPredictionMachine):
+                    X_seen = np.append(X_seen, [object], axis=0)
+                    y_seen = np.append(y_seen, [label])
 
+                    # hyperparameter tuning for k
+                    #best_k = CPDM.KFold_knn(X_seen, y_seen, epsilon)
+                    best_k = 5
+                    cps_d.k = best_k
+                    
             expected_utilities.append(expected_utilities_d)
 
         # Decision making
@@ -227,9 +242,8 @@ class CPDM:
 
         return decisions_made, average_utility, res
 
-    # Might need later
     @staticmethod
-    def KFold_knn(X_train, y_train, epsilon, k_values=[1, 5, 10]):
+    def KFold_knn(X_train, y_train, epsilon, k_values=[100]):
         best_k, best_score = None, float("inf")
 
         kf = KFold(n_splits=5, shuffle=True, random_state=2025)
@@ -258,6 +272,4 @@ class CPDM:
             if avg_error < best_score:
                 best_score = avg_error
                 best_k = k
-
-        print(f"Best k found: {best_k} with error: {best_score:.4f}")
         return best_k

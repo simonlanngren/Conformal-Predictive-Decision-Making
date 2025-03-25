@@ -37,7 +37,7 @@ class Main:
         self.datasplit_dict = datasplit_dict
         self.config_dict = config_dict
         self.Decisions = {0, 1}
-        self.threshold = 0.5
+        self.predictive_threshold = 0.5
         self.epsilon = epsilon
         
     def run(self):
@@ -48,13 +48,13 @@ class Main:
             plot_dict = self.inductive_setting(models, bayesian_models, splits)
         
         if self.config_dict['mode'] == "Online":
-            plot_dict = self.online_setting(splits)
+            plot_dict, decisions = self.online_setting(splits)
         
         if self.config_dict['optimal']:
             _, average_utility = CPDM.optimal_decision_making(self.Decisions, splits['y_test'], self.utility_func)
             plot_dict["Optimal"] = average_utility
             
-        print(plot_dict)
+        #print([d_r == d_k for d_r, d_k in zip(decisions["CPDM - NNPM"], decisions["CPDM - Ridge"])])
         
         # Creating the plot
         styles = ['-', '--', '-.', ':']
@@ -77,9 +77,10 @@ class Main:
         
     def online_setting(self, splits):
         plot_dict = {}
+        decisions = {}
         if self.config_dict['knn']:
-            cps = NearestNeighboursPredictionMachine(k = 2)
-            _, average_utility, _ = (
+            cps = NearestNeighboursPredictionMachine(k = 10)
+            decisions_knn, average_utility, _ = (
                 CPDM.online_CPDM(
                     self.Decisions,
                     splits['X_train_full'],
@@ -93,8 +94,11 @@ class Main:
             )
             plot_dict["CPDM - NNPM"] = average_utility
             
+            decisions["CPDM - NNPM"] = decisions_knn
+
+            
             if self.config_dict['predictive']:
-                model = KNeighborsRegressor(n_neighbors=5)
+                model = KNeighborsRegressor(n_neighbors=5) # TODO: Hyperparameter tuning
                 _, average_utility = (
                     PredictiveDecisionMaking.online_predictive_decision_making(
                         splits['X_train_full'],
@@ -103,14 +107,14 @@ class Main:
                         splits['y_test'],
                         self.utility_func,
                         model,
-                        self.threshold,
+                        self.predictive_threshold,
                     )
                 )
                 plot_dict["NNPM Predictive"] = average_utility
                 
         if self.config_dict['ridge']:
             cps = RidgePredictionMachine(autotune=True)
-            _, average_utility, _ = (
+            decisions_ridge, average_utility, _ = (
                 CPDM.online_CPDM(
                     self.Decisions,
                     splits['X_train_full'],
@@ -123,6 +127,7 @@ class Main:
                 )
             )
             plot_dict["CPDM - Ridge"] = average_utility
+            decisions["CPDM - Ridge"] = decisions_ridge
             
             if self.config_dict['predictive']:
                 model = Ridge()
@@ -134,7 +139,7 @@ class Main:
                         splits['y_test'],
                         self.utility_func,
                         model,
-                        self.threshold,
+                        self.predictive_threshold,
                     )
                 )
                 plot_dict["Ridge Predictive"] = average_utility
@@ -161,7 +166,7 @@ class Main:
                         splits['y_test'],
                         self.utility_func,
                         model,
-                        self.threshold,
+                        self.predictive_threshold,
                     )
                 )
                 plot_dict["Bayesian Ridge Predictive"] = average_utility
@@ -188,12 +193,12 @@ class Main:
                         splits['y_test'],
                         self.utility_func,
                         model,
-                        self.threshold,
+                        self.predictive_threshold,
                     )
                 )
                 plot_dict["GP Predictive"] = average_utility
                 
-        return plot_dict
+        return plot_dict, decisions
     
     def inductive_setting(self, models, bayesian_models, splits):
         plot_dict = {}
@@ -220,7 +225,7 @@ class Main:
                         splits['y_test'],
                         self.utility_func,
                         model,
-                        self.threshold,
+                        self.predictive_threshold,
                     )
                 )
                 plot_dict[f"{model.__class__.__name__} Predictive"] = average_utility
@@ -247,7 +252,7 @@ class Main:
                         splits['y_test'],
                         self.utility_func,
                         model,
-                        self.threshold,
+                        self.predictive_threshold,
                     )
                 )
                 plot_dict[f"{model.__class__.__name__} Predictive"] = average_utility
@@ -389,7 +394,7 @@ class Main:
         Maps y_value to a utility score for a given decision based on a dictionary input.
         utility_dict should have keys: 'tp', 'tn', 'fp', 'fn'.
         """
-        y_value = int(round(y_value))
+        y_value = int(round(y_value)) # TODO: Change to threshold
 
         if decision:
             if y_value:

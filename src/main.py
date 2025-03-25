@@ -265,19 +265,23 @@ class Main:
         bayesian_models = []
         
         if self.config_dict['knn']:
-            best_params_knn = self.model_selection_knn(splits)
-            knn = KNeighborsRegressor(**best_params_knn)
-            models.append(knn)
+            if self.config_dict['model_selection']:
+                best_params_knn = self.model_selection_knn(splits)
+                knn = KNeighborsRegressor(**best_params_knn)
+                models.append(knn)
+            else:
+                models.append(KNeighborsRegressor())
             
-        if self.config_dict['ridge']:            
-            best_params_ridge = self.model_selection_ridge(splits)
-            ridge = Ridge(**best_params_ridge)
-            models.append(ridge)
+        if self.config_dict['ridge']:   
+            if self.config_dict['model_selection']:
+                best_params_ridge = self.model_selection_ridge(splits)
+                ridge = Ridge(**best_params_ridge)
+                models.append(ridge)
+            else:
+                models.append(Ridge())
 
-            
         if self.config_dict['bayesian_ridge']:
-            best_params_bayes_ridge = self.model_selection_bayes_ridge(splits)
-            bayes_ridge = BayesianRidge(**best_params_bayes_ridge)
+            bayes_ridge = BayesianRidge()
             bayesian_models.append(bayes_ridge)
         
         if self.config_dict['gp']:
@@ -293,54 +297,28 @@ class Main:
             print(f"{model.__class__.__name__}: Test Score (MSE): {test_score:.3f}")
         
         return models, bayesian_models
-    
-    
-    def model_selection_bayes_ridge(self, splits):
-        bayes_ridge = BayesianRidge()
-
-        bayes_ridge_search_space = {
-            'alpha_1': Real(1e-6, 1e-2, prior='log-uniform'),
-            'alpha_2': Real(1e-6, 1e-2, prior='log-uniform'),
-            'lambda_1': Real(1e-6, 1e-2, prior='log-uniform'),
-            'lambda_2': Real(1e-6, 1e-2, prior='log-uniform')
-        }
-
-        best_params_bayes_ridge, best_score_bayes_ridge = ModelSelection.bayesian_model_selection(splits['X_train_full'], splits['y_train_full'], bayes_ridge, bayes_ridge_search_space)
-
-        ModelSelection.print_cv_results(str(best_params_bayes_ridge), best_score_bayes_ridge)
-
-        return best_params_bayes_ridge
             
-    
     def model_selection_knn(self, splits):
         knn = KNeighborsRegressor(n_jobs=-1)
 
-        knn_search_space = {
-            'n_neighbors': Integer(1, 20),
-            'weights': Categorical(['uniform', 'distance']),
-            'p': Integer(1, 2)
-        }
+        knn_search_space = self.config_dict['grid_search_space']['knn']
 
-        best_params_knn, best_score_knn = ModelSelection.bayesian_model_selection(splits['X_train'], splits['y_train'], knn, knn_search_space)
+        best_params_knn, best_score_knn = ModelSelection.model_selection(splits['X_train'], splits['y_train'], estimator = knn, param_grid = knn_search_space)
 
         ModelSelection.print_cv_results(str(best_params_knn), best_score_knn)
         
         return best_params_knn
-    
         
     def model_selection_ridge(self, splits):
         ridge = Ridge()
+        
+        ridge_search_space = self.config_dict['grid_search_space']['ridge']
 
-        ridge_search_space = {
-            'alpha': Real(1e-4, 1e+4, prior='log-uniform')
-        }
-
-        best_params_ridge, best_score_ridge = ModelSelection.bayesian_model_selection(splits['X_train'], splits['y_train'], ridge, ridge_search_space)
+        best_params_ridge, best_score_ridge = ModelSelection.model_selection(splits['X_train'], splits['y_train'], estimator = ridge, param_grid = ridge_search_space)
 
         ModelSelection.print_cv_results(str(best_params_ridge), best_score_ridge)
         
         return best_params_ridge
-        
     
     def data_generation(self):
         df = DataGeneration.generate_distribution(**self.df_params)

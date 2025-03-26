@@ -14,8 +14,6 @@ import matplotlib.pyplot as plt
 
 from sklearn.model_selection import train_test_split
 
-from itertools import product
-
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.linear_model import Ridge, BayesianRidge
 from sklearn.metrics import mean_squared_error
@@ -56,16 +54,9 @@ class Main:
             
         #print([d_r == d_k for d_r, d_k in zip(decisions["CPDM - NNPM"], decisions["CPDM - Ridge"])])
         
-        # Creating the plot
-        styles = ['-', '--', '-.', ':']
-        colors = ['blue', 'green', 'red', 'orange', 'purple', 'yellow']
-
-        style_color_combinations = list(product(styles, colors))
-
         for i, (label, values) in enumerate(plot_dict.items()):
             x = list(range(1, len(values) + 1))
-            style, color = style_color_combinations[i % len(style_color_combinations)]
-            plt.plot(x, values, label=label, linestyle=style, color=color)
+            plt.plot(x, values, label=label, alpha=1-0.05*i)
         
         plt.xlabel('Test Case')
         plt.ylabel('Average Utility')
@@ -130,7 +121,7 @@ class Main:
             decisions["CPDM - Ridge"] = decisions_ridge
             
             if self.config_dict['predictive']:
-                model = Ridge()
+                model = Ridge() # TODO: Hyperparameter tuning in each iteration
                 _, average_utility = (
                     PredictiveDecisionMaking.online_predictive_decision_making(
                         splits['X_train_full'],

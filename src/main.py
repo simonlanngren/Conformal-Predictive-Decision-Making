@@ -312,13 +312,15 @@ class Main:
         return best_params_ridge
     
     def data_generation(self):
-        df = DataGeneration.generate_distribution(**self.df_params)
+        df = DataGeneration.generate_distribution(self.df_params)
         
-        DataGeneration.plot_histograms_and_metrics(df, "Generated Distribution")
+        DataGeneration.plot_histograms_and_metrics(df, self.df_params)
         
-        subset = df.sample(n=self.subset_size, random_state=2025) 
-        X = subset.drop(columns=["Target"])
-        y = subset["Target"]
+        
+        
+        #subset = df.sample(n=self.subset_size, random_state=2025) 
+        X = df.drop(columns=["Target"])
+        y = df["Target"]
         
         X_train, X_test, y_train, y_test = train_test_split(
             X, y, test_size=self.datasplit_dict["train_test"], random_state=2025

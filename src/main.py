@@ -316,9 +316,10 @@ class Main:
         
         DataGeneration.plot_histograms_and_metrics(df, self.df_params)
         
+        # subset = df.sample(n=self.subset_size, random_state=2025) 
+        # X = subset.drop(columns=["Target"])
+        # y = subset["Target"]
         
-        
-        #subset = df.sample(n=self.subset_size, random_state=2025) 
         X = df.drop(columns=["Target"])
         y = df["Target"]
         

@@ -14,6 +14,8 @@ class DataGeneration:
         scaler = MinMaxScaler()
         random_state = df_params['random_state']
         noise = df_params['noise']
+        
+        np.random.seed(random_state)
 
         
         if relationship == 'make_regression':
@@ -26,14 +28,14 @@ class DataGeneration:
             # Friedman2 only supports 4 features
             X, y = make_friedman2(n_samples=N, noise=noise, random_state=random_state)
             if F > 4:
-                noise_features = np.random.rand(N, F - 4, random_state=random_state)
+                noise_features = np.random.rand(N, F - 4)
                 X = np.hstack((X, noise_features))
         
         elif relationship == 'friedman3':
             # Friedman3 only supports 4 features
             X, y = make_friedman3(n_samples=N, noise=noise, random_state=random_state)
             if F > 4:
-                noise_features = np.random.rand(N, F - 4, random_state=random_state)
+                noise_features = np.random.rand(N, F - 4)
                 X = np.hstack((X, noise_features))
         
         else:
@@ -72,11 +74,12 @@ class DataGeneration:
 
         # Extract parameters
         F = df_params.get('F')
+        n_informative = df_params.get('n_informative')
         relationship = df_params.get('feature_target_relationship')
 
         # Determine number of informative features based on sklearn's definitions
         informative_lookup = {
-            'make_regression': F,       # All features can be informative
+            'make_regression': n_informative,
             'friedman1': 5,             # Friedman1 uses 5 informative features
             'friedman2': 4,             # Friedman2 uses 4
             'friedman3': 4              # Friedman3 uses 4

@@ -1,10 +1,25 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from sklearn import datasets
 from sklearn.datasets import make_regression, make_friedman1, make_friedman2, make_friedman3
 from sklearn.preprocessing import MinMaxScaler
 
 class DataGeneration:    
+    @staticmethod
+    def generate_diabetes_data():
+        scaler = MinMaxScaler()
+        diabetes = datasets.load_diabetes()
+        X = diabetes.data
+        y = diabetes.target
+        
+        y_scaled = scaler.fit_transform(y.reshape(-1, 1)).ravel()
+
+        # Convert to DataFrame
+        df = pd.DataFrame(X, columns=[f'Feature_{i}' for i in range(X.shape[1])])
+        df['Target'] = y_scaled
+        return df
+        
     @staticmethod
     def generate_distribution(df_params):
         N = df_params['N']

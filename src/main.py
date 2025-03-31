@@ -13,6 +13,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.linear_model import Ridge, BayesianRidge
@@ -27,7 +28,7 @@ from online_cp.CPS import NearestNeighboursPredictionMachine
 
 
 class Main:
-    def __init__(self, df_params, utility_dict, subset_size, epsilon, datasplit_dict, config_dict):
+    def __init__(self, df_params, utility_dict, subset_size, epsilon, datasplit_dict, config_dict, plot_config):
         np.random.seed(2025)
         self.df_params = df_params
         self.utility_dict = utility_dict
@@ -37,6 +38,7 @@ class Main:
         self.Decisions = {0, 1}
         self.predictive_threshold = 0.5
         self.epsilon = epsilon
+        self.plot_config = plot_config
         
     def run(self):
         splits = self.data_generation()
@@ -52,8 +54,64 @@ class Main:
             _, average_utility = CPDM.optimal_decision_making(self.Decisions, splits['y_test'], self.utility_func)
             plot_dict["Optimal"] = average_utility
             
-        #print([d_r == d_k for d_r, d_k in zip(decisions["CPDM - NNPM"], decisions["CPDM - Ridge"])])
+        # Creating the plots
+        if self.plot_config['average_utility']:
+            self.plot_average_utility(plot_dict)
+
+        if self.plot_config['average_utility_with_confidence']:
+            self.plot_average_utility_with_confidence(extended_plot_dict)
+
+        if self.plot_config['difference_from_optimal']:
+            self.plot_difference_from_optimal(plot_dict)
+
+        if self.plot_config['difference_from_optimal_with_confidence']:
+            self.plot_difference_from_optimal_with_confidence(extended_plot_dict)
+            
+        if self.plot_config['regret']:
+            self.plot_regret(plot_dict)
+            
+        if self.plot_config['regret_with_confidence']:
+            self.plot_regret_with_confidence(extended_plot_dict)
+
+
+    def plot_regret(self, plot_dict):
+        if self.config_dict['mode'] != "Online":
+            print("Regret plotting is only applicable in Online mode.")
+            return
+
+        if "Optimal" not in plot_dict:
+            print("Cannot compute regret: 'Optimal' values missing in plot_dict.")
+            return
+
+        optimal_utilities = np.array(plot_dict["Optimal"])
+        x = np.arange(1, len(optimal_utilities) + 1)
+
+        for i, (label, utilities) in enumerate(plot_dict.items()):
+            if label == "Optimal":
+                continue
+
+            utilities = np.array(utilities)
+            regret = optimal_utilities - utilities
+            cumulative_regret = np.cumsum(regret)
+
+            color = plt.cm.tab10(i % 10)
+            plt.plot(x, cumulative_regret, label=label, color=color)
+
+        plt.xlabel("Test Case")
+        plt.ylabel("Cumulative Regret")
+        plt.title(f"Cumulative Regret Over Time - {self.config_dict['mode']} Setting")
+        plt.legend()
+        plt.grid(True)
+        plt.tight_layout()
+        plt.show()
         
+    
+    def plot_regret_with_confidence(self, extended_plot_dict, confidence=0.95):
+        ## TODO
+        return
+
+        
+    def plot_average_utility(self, plot_dict):
         for i, (label, values) in enumerate(plot_dict.items()):
             x = list(range(1, len(values) + 1))
             plt.plot(x, values, label=label, alpha=1-0.05*i)
@@ -66,6 +124,43 @@ class Main:
         plt.tight_layout()
         plt.show()
         
+    
+    def plot_average_utility_with_confidence(self, extended_plot_dict, confidence=0.95):
+        ## TODO
+        return
+        
+        
+    def plot_difference_from_optimal(self, plot_dict):
+        if "Optimal" not in plot_dict:
+            print("No 'Optimal' baseline found in plot_dict.")
+            return
+
+        optimal_values = np.array(plot_dict["Optimal"])
+
+        for i, (label, values) in enumerate(plot_dict.items()):
+            if label == "Optimal":
+                continue  # Skip plotting the difference for the optimal itself
+
+            values = np.array(values)
+            differences = optimal_values - values  # or values - optimal_values if you want it the other way around
+            x = list(range(1, len(differences) + 1))
+            color = plt.cm.tab10(i % 10)
+            plt.plot(x, differences, label=label, alpha=1 - 0.05 * i, color=color)
+
+        plt.xlabel('Test Case')
+        plt.ylabel('Difference from Optimal Utility')
+        plt.legend()
+        plt.title(f"Difference from Optimal - {self.config_dict['mode']} Setting")
+        plt.grid(True)
+        plt.tight_layout()
+        plt.show()
+        
+        
+    def plot_difference_from_optimal_with_confidence(self, extended_plot_dict, confidence=0.95):
+        ## TODO
+        return
+
+                
     def online_setting(self, splits):
         plot_dict = {}
         decisions = {}
@@ -191,6 +286,7 @@ class Main:
                 
         return plot_dict, decisions
     
+    
     def inductive_setting(self, models, bayesian_models, splits):
         plot_dict = {}
         for model in models:
@@ -289,6 +385,7 @@ class Main:
         
         return models, bayesian_models
             
+            
     def model_selection_knn(self, splits):
         knn = KNeighborsRegressor(n_jobs=-1)
 
@@ -299,6 +396,7 @@ class Main:
         ModelSelection.print_cv_results(str(best_params_knn), best_score_knn)
         
         return best_params_knn
+        
         
     def model_selection_ridge(self, splits):
         ridge = Ridge()
@@ -311,15 +409,19 @@ class Main:
         
         return best_params_ridge
     
+    
     def data_generation(self):
-        df = DataGeneration.generate_distribution(self.df_params)
-        
-        DataGeneration.plot_histograms_and_metrics(df, self.df_params)
+        if self.df_params["diabetes"]:
+            df = DataGeneration.generate_diabetes_data()
+        else:
+            df = DataGeneration.generate_distribution(self.df_params)
         
         # subset = df.sample(n=self.subset_size, random_state=2025) 
         # X = subset.drop(columns=["Target"])
         # y = subset["Target"]
         
+        DataGeneration.plot_histograms_and_metrics(df, self.df_params)
+
         X = df.drop(columns=["Target"])
         y = df["Target"]
         
@@ -334,17 +436,25 @@ class Main:
         # Combine training and calibration sets
         X_train_full = pd.concat([X_train, X_cal])
         y_train_full = pd.concat([y_train, y_cal])
-
-        # Convert to numpy arrays
+        
+        if self.df_params["diabetes"]:
+            scaler = StandardScaler()
+            scaler_full = StandardScaler()
+            X_train = scaler.fit_transform(X_train)
+            X_cal = scaler.transform(X_cal)
+            X_test = scaler.transform(X_test)
+            X_train_full = scaler_full.fit_transform(X_train_full)
+            
+        # Convert to numpy arrays if needed
         splits = {
-            "X_train": X_train.to_numpy(),
-            "y_train": y_train.to_numpy(),
-            "X_test": X_test.to_numpy(),
-            "y_test": y_test.to_numpy(),
-            "X_cal": X_cal.to_numpy(),
-            "y_cal": y_cal.to_numpy(),
-            "X_train_full": X_train_full.to_numpy(),
-            "y_train_full": y_train_full.to_numpy(),
+            "X_train": self.to_numpy_safe(X_train),
+            "y_train": self.to_numpy_safe(y_train),
+            "X_test": self.to_numpy_safe(X_test),
+            "y_test": self.to_numpy_safe(y_test),
+            "X_cal": self.to_numpy_safe(X_cal),
+            "y_cal": self.to_numpy_safe(y_cal),
+            "X_train_full": self.to_numpy_safe(X_train_full),
+            "y_train_full": self.to_numpy_safe(y_train_full),
         }
 
         # Histogram of the target variable
@@ -359,8 +469,12 @@ class Main:
         print(f"Train+Calibration set size: {len(splits['y_train'])+len(splits['y_cal'])}")
 
         return splits
+    
+    
+    def to_numpy_safe(self, x):
+        return x.to_numpy() if hasattr(x, "to_numpy") else x
 
-        
+
     def utility_func(self, y_value, decision):
         """
         Maps y_value to a utility score for a given decision based on a dictionary input.

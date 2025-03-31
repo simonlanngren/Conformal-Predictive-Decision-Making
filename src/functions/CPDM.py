@@ -92,6 +92,12 @@ class CPDM:
 
             # Get CPDs for test samples
             cpds = cps.predict_cps(X_test, return_cpds=True)
+            
+            # HÖR MED JOHAN
+            # print(cpds_old.shape)
+            # cpds = cps.predict_cps(X_test, lower_percentiles=2.5, higher_percentiles=97.5, return_cpds=True)
+            # print(cpds.shape)
+
 
             # Compute expected utility
             expected_utilities_d = []

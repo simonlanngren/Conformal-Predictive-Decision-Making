@@ -24,7 +24,7 @@ class ModelSelection:
             n_jobs=n_jobs,
             cv=cv,
             verbose=verbose,
-            scoring=scoring,
+            scoring=scoring
         )
         grid_search.fit(X_train, y_train)
 

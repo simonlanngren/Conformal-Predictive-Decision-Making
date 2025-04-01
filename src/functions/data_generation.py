@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 from sklearn import datasets
 from sklearn.datasets import make_regression, make_friedman1, make_friedman2, make_friedman3
 from sklearn.preprocessing import MinMaxScaler
@@ -66,20 +67,18 @@ class DataGeneration:
 
     @staticmethod
     def plot_histograms_and_metrics(df, df_params):
-        import matplotlib.pyplot as plt
-
         plt.figure(figsize=(12, 4))
 
         # Target distribution
         plt.subplot(1, 2, 1)
-        plt.hist(df['Target'], bins=30, edgecolor='black')
+        sns.histplot(data=df, x='Target', bins=30, kde=True, edgecolor='black')
         plt.title('Target Distribution')
         plt.xlabel('Target')
         plt.ylabel('Frequency')
 
         # First feature distribution
         plt.subplot(1, 2, 2)
-        plt.hist(df['Feature_0'], bins=30, edgecolor='black')
+        sns.histplot(data=df, x='Feature_0', bins=30, kde=True, edgecolor='black')
         plt.title('Feature_0 Distribution')
         plt.xlabel('Feature_0')
         plt.ylabel('Frequency')

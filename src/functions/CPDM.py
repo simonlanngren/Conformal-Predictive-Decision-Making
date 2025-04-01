@@ -93,12 +93,6 @@ class CPDM:
             # Get CPDs for test samples
             cpds = cps.predict_cps(X_test, return_cpds=True)
             
-            # HÖR MED JOHAN
-            # print(cpds_old.shape)
-            # cpds = cps.predict_cps(X_test, lower_percentiles=2.5, higher_percentiles=97.5, return_cpds=True)
-            # print(cpds.shape)
-
-
             # Compute expected utility
             expected_utilities_d = []
             for i in range(len(X_test)):
@@ -127,9 +121,11 @@ class CPDM:
 
     @staticmethod
     def online_CPDM(
-        Decisions, X_train, y_train, X_test, y_test, utility_func, epsilon, cps
+        Decisions, X_train, y_train, X_test, y_test, utility_func, cps
     ):
         res = np.zeros(shape=(len(Decisions), len(X_test), 8))
+        
+        epsilon=0.05
 
         expected_utilities = []
 
@@ -226,8 +222,8 @@ class CPDM:
                     y_seen = np.append(y_seen, [label])
 
                     # hyperparameter tuning for k
-                    #best_k = CPDM.KFold_knn(X_seen, y_seen, epsilon)
-                    best_k = 5
+                    #best_k = CPDM.KFold_knn(X_seen, y_seen)
+                    best_k = 7
                     cps_d.k = best_k
                     
             expected_utilities.append(expected_utilities_d)
@@ -249,7 +245,7 @@ class CPDM:
         return decisions_made, average_utility, res
 
     @staticmethod
-    def KFold_knn(X_train, y_train, epsilon, k_values=[100]):
+    def KFold_knn(X_train, y_train, epsilon=0.05, k_values=[3, 5, 7, 10, 15, 30, 50, 75, 100]):
         best_k, best_score = None, float("inf")
 
         kf = KFold(n_splits=5, shuffle=True, random_state=2025)

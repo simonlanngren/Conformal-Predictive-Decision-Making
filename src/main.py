@@ -30,10 +30,9 @@ from online_cp.CPS import NearestNeighboursPredictionMachine
 
 
 class Main:
-    def __init__(self, df_params, utility_dict, datasplit_dict, config_dict, plot_config):
+    def __init__(self, df_params, utility_dict, config_dict, plot_config):
         self.df_params = df_params
         self.utility_dict = utility_dict
-        self.datasplit_dict = datasplit_dict
         self.config_dict = config_dict
         self.Decisions = {0, 1}
         self.predictive_threshold = 0.5
@@ -554,29 +553,46 @@ class Main:
 
         X = df.drop(columns=["Target"])
         y = df["Target"]
-        
+
         rng = np.random.default_rng()
-        
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=self.datasplit_dict["train_test"], random_state=rng.integers(1e9)
+
+        # First split: full data into train and test
+        X_train_full, X_test, y_train_full, y_test = train_test_split(
+            X, y, test_size=self.df_params["train_test_split"], random_state=rng.integers(1e9)
         )
 
-        X_cal, X_test, y_cal, y_test = train_test_split(
-            X_test, y_test, test_size=self.datasplit_dict["test_cal"], random_state=rng.integers(1e9)
+        # Theoretical calibration size
+        epsilon = self.df_params['epsilon']
+        delta = self.df_params['delta']
+        min_cal_size = int(np.ceil((1 / (2 * epsilon**2)) * np.log(1 / delta)))
+        
+        if min_cal_size >= len(X_train_full):
+            raise ValueError(
+                f"Not enough training data ({len(X_train_full)}) to allocate calibration set of size {min_cal_size}. Increase Epsilon and Delta."
+            )
+
+        cal_fraction = min_cal_size / len(X_train_full)
+
+        # Second split: training data into train and calibration
+        X_cal, X_train, y_cal, y_train = train_test_split(
+            X_train_full, y_train_full,
+            test_size=1 - cal_fraction,
+            random_state=rng.integers(1e9)
         )
 
-        # Combine training and calibration sets
-        X_train_full = pd.concat([X_train, X_cal])
-        y_train_full = pd.concat([y_train, y_cal])
-        
+        # Reconstruct full training data for comparison and optional scaling
+        X_train_full_concat = pd.concat([X_train, X_cal])
+        y_train_full_concat = pd.concat([y_train, y_cal])
+
+        # Optional scaling
         if self.df_params["diabetes"]:
             scaler = StandardScaler()
             scaler_full = StandardScaler()
             X_train = scaler.fit_transform(X_train)
             X_cal = scaler.transform(X_cal)
             X_test = scaler.transform(X_test)
-            X_train_full = scaler_full.fit_transform(X_train_full)
-            
+            X_train_full_concat = scaler_full.fit_transform(X_train_full_concat)
+
         # Convert to numpy arrays if needed
         splits = {
             "X_train": self.to_numpy_safe(X_train),
@@ -585,18 +601,19 @@ class Main:
             "y_test": self.to_numpy_safe(y_test),
             "X_cal": self.to_numpy_safe(X_cal),
             "y_cal": self.to_numpy_safe(y_cal),
-            "X_train_full": self.to_numpy_safe(X_train_full),
-            "y_train_full": self.to_numpy_safe(y_train_full),
+            "X_train_full": self.to_numpy_safe(X_train_full_concat),
+            "y_train_full": self.to_numpy_safe(y_train_full_concat),
         }
-                
+
         if plot_data:
             print(f"Train set size: {len(splits['y_train'])}")
-            print(f"Test set size: {len(splits['y_test'])}")
             print(f"Calibration set size: {len(splits['y_cal'])}")
-            print(f"Train+Calibration set size: {len(splits['y_train'])+len(splits['y_cal'])}")
+            print(f"Test set size: {len(splits['y_test'])}")
+            print(f"Train+Calibration set size: {len(splits['y_train']) + len(splits['y_cal'])}")
             print("----------------------------------------")
 
         return splits
+
     
     
     def to_numpy_safe(self, x):

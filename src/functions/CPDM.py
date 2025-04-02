@@ -5,7 +5,7 @@ from online_cp.martingale import PluginMartingale
 from copy import deepcopy
 from online_cp.CPS import NearestNeighboursPredictionMachine
 from sklearn.model_selection import KFold
-
+from joblib import Parallel, delayed
 
 class CPDM:
     @staticmethod
@@ -147,8 +147,8 @@ class CPDM:
                 y_test_d += np.random.normal(scale=1e-6, size=y_test_d.shape)
 
                 # hyperparameter tuning for k
-                #best_k = CPDM.KFold_knn(X_seen, y_seen, epsilon)
-                best_k = 5
+                best_k = CPDM.KFold_knn_parallel(X_seen, y_seen, epsilon)
+                #best_k = 5
                 cps_d = NearestNeighboursPredictionMachine(k=best_k)  # Use optimal k
                 
             else:
@@ -222,8 +222,7 @@ class CPDM:
                     y_seen = np.append(y_seen, [label])
 
                     # hyperparameter tuning for k
-                    #best_k = CPDM.KFold_knn(X_seen, y_seen)
-                    best_k = 7
+                    best_k = CPDM.KFold_knn_parallel(X_seen, y_seen)
                     cps_d.k = best_k
                     
             expected_utilities.append(expected_utilities_d)
@@ -244,20 +243,23 @@ class CPDM:
 
         return decisions_made, average_utility, res
 
-    @staticmethod
-    def KFold_knn(X_train, y_train, epsilon=0.05, k_values=[3, 5, 7, 10, 15, 30, 50, 75, 100]):
-        best_k, best_score = None, float("inf")
 
+    @staticmethod
+    def KFold_knn(X_train, y_train, epsilon=0.05, k_values=[3, 5, 7, 10, 15, 40]):
+        best_k = None
+        best_score = float("inf")
         kf = KFold(n_splits=5, shuffle=True, random_state=2025)
+
+        # Pre-split indices once for efficiency
+        splits = list(kf.split(X_train))
 
         for k in k_values:
             cv_errors = []
 
-            for train_idx, val_idx in kf.split(X_train):
+            for train_idx, val_idx in splits:
                 X_train_cv, X_val_cv = X_train[train_idx], X_train[val_idx]
                 y_train_cv, y_val_cv = y_train[train_idx], y_train[val_idx]
 
-                # Train model with current k
                 cps_cv = NearestNeighboursPredictionMachine(k=k)
                 cps_cv.learn_initial_training_set(X_train_cv, y_train_cv)
 
@@ -266,12 +268,45 @@ class CPDM:
                     tau = np.random.uniform(0, 1)
                     cpd = cps_cv.predict_cpd(x=x)
                     Gamma = cpd.predict_set(tau=tau, epsilon=epsilon)
-                    errors.append(cpd.err(Gamma=Gamma, y=y))
+                    err = cpd.err(Gamma=Gamma, y=y)
+                    errors.append(err)
 
+                # Calculate mean error only once
                 cv_errors.append(np.mean(errors))
 
             avg_error = np.mean(cv_errors)
             if avg_error < best_score:
                 best_score = avg_error
                 best_k = k
+
+        return best_k
+
+    @staticmethod
+    def KFold_knn_parallel(X_train, y_train, epsilon=0.05, k_values=[3, 5, 7, 10, 15, 40], n_jobs=-1):
+        kf = KFold(n_splits=5, shuffle=True, random_state=2025)
+        splits = list(kf.split(X_train))
+
+        def eval_k(k):
+            cv_errors = []
+            for train_idx, val_idx in splits:
+                X_train_cv, X_val_cv = X_train[train_idx], X_train[val_idx]
+                y_train_cv, y_val_cv = y_train[train_idx], y_train[val_idx]
+
+                cps_cv = NearestNeighboursPredictionMachine(k=k)
+                cps_cv.learn_initial_training_set(X_train_cv, y_train_cv)
+
+                errors = []
+                for x, y in zip(X_val_cv, y_val_cv):
+                    tau = np.random.uniform(0, 1)
+                    cpd = cps_cv.predict_cpd(x=x)
+                    Gamma = cpd.predict_set(tau=tau, epsilon=epsilon)
+                    err = cpd.err(Gamma=Gamma, y=y)
+                    errors.append(err)
+
+                cv_errors.append(np.mean(errors))
+
+            return k, np.mean(cv_errors)
+
+        results = Parallel(n_jobs=n_jobs)(delayed(eval_k)(k) for k in k_values)
+        best_k, best_score = min(results, key=lambda x: x[1])
         return best_k

@@ -305,16 +305,14 @@ class Main:
         decisions = {}
         if self.config_dict['knn']:
             cps = NearestNeighboursPredictionMachine(k = 10)
-            decisions_knn, average_utility, _ = (
-                CPDM.online_CPDM(
-                    self.Decisions,
-                    splits['X_train_full'],
-                    splits['y_train_full'],
-                    splits['X_test'],
-                    splits['y_test'],
-                    self.utility_func,
-                    cps=cps,
-                )
+            decisions_knn, average_utility, _ = CPDM.online_CPDM(
+                self.Decisions,
+                splits['X_train_full'],
+                splits['y_train_full'],
+                splits['X_test'],
+                splits['y_test'],
+                self.utility_func,
+                cps=cps,
             )
             plot_dict["CPDM - NNPM"] = average_utility
             
@@ -338,16 +336,14 @@ class Main:
                 
         if self.config_dict['ridge']:
             cps = RidgePredictionMachine(autotune=True)
-            decisions_ridge, average_utility, _ = (
-                CPDM.online_CPDM(
-                    self.Decisions,
-                    splits['X_train_full'],
-                    splits['y_train_full'],
-                    splits['X_test'],
-                    splits['y_test'],
-                    self.utility_func,
-                    cps=cps,
-                )
+            decisions_ridge, average_utility, _ = CPDM.online_CPDM(
+                self.Decisions,
+                splits['X_train_full'],
+                splits['y_train_full'],
+                splits['X_test'],
+                splits['y_test'],
+                self.utility_func,
+                cps=cps,
             )
             plot_dict["CPDM - Ridge"] = average_utility
             decisions["CPDM - Ridge"] = decisions_ridge

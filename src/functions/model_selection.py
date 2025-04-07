@@ -1,21 +1,10 @@
 from sklearn.model_selection import GridSearchCV, KFold
-from skopt import BayesSearchCV
 from checkpointer import checkpoint
 
 class ModelSelection:
     @checkpoint
     @staticmethod
-    def model_selection(
-        X_train,
-        y_train,
-        estimator,
-        param_grid,
-        n_splits=5,
-        random_state=2025,
-        n_jobs=-1,
-        verbose=2,
-        scoring="neg_mean_squared_error",
-    ):
+    def model_selection(X_train, y_train, estimator, param_grid, n_splits=5, random_state=2025, n_jobs=-1, verbose=2, scoring="neg_mean_squared_error"):
         cv = KFold(n_splits=n_splits, shuffle=True, random_state=random_state)
 
         grid_search = GridSearchCV(

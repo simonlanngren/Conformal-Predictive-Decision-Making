@@ -1,9 +1,10 @@
 # Internal imports
+from .functions.Utility import Utility
 from .functions.CPDM import CPDM
 from .functions.BDT import BDT
-from .functions.data_generation import DataGeneration
-from .functions.model_selection import ModelSelection
 from .functions.predictive_decision_making import PredictiveDecisionMaking
+from .functions.model_selection import ModelSelection
+from .functions.data_generation import DataGeneration
 
 # External imports
 import pandas as pd
@@ -22,7 +23,6 @@ from sklearn.metrics import mean_squared_error
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
 
-from skopt.space import Real, Categorical, Integer
 from checkpointer import checkpoint
 
 from online_cp.CPS import RidgePredictionMachine

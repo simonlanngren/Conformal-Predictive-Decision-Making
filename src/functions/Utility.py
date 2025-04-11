@@ -3,6 +3,19 @@ import numpy as np
 
 class Utility:
     @staticmethod
+    def create_utility_func(threshold, tp, tn, fp, fn):
+        def utility_func(y_value, decision, threshold=threshold, tp=tp, tn=tn, fp=fp, fn=fn):
+            y_value = int(y_value >= threshold)
+            return (
+                tp if decision and y_value else
+                fp if decision else
+                fn if y_value else
+                tn
+            )
+                        
+        return utility_func
+    
+    @staticmethod
     def create_utility_sequence(ys, decision, utility):
         return np.array([utility(y, decision) for y in ys])
     
@@ -22,7 +35,7 @@ class Utility:
         # Compute the utilities
         utilities = np.array([utility_func(y, decision) for y in cdf_vals])
 
-        # Compute CPD jumps
+        # Compute CDF jumps
         cdf_len = len(cdf_vals)
         delta_Q_star = np.diff(np.array([i / cdf_len for i in range(cdf_len)]))
 
@@ -33,32 +46,23 @@ class Utility:
 
     @staticmethod
     def optimal_decision_making(Decisions, y_test, utility_func):
-        optimal_decisions, max_utilities = zip(
+        optimal_decisions, utilities = zip(
             *[
                 max(((d, utility_func(y, d)) for d in Decisions), key=lambda x: x[1])
                 for y in y_test
             ]
         )
         
-        optimal_average_utility = [
-            sum(max_utilities[: i + 1]) / (i + 1) for i in range(len(max_utilities))
-        ]
-        
-        return optimal_decisions, optimal_average_utility
+        return optimal_decisions, utilities
     
     @staticmethod
-    def compute_average_utility(expected_utilities, utility_func, y_test):
+    def make_decisions(expected_utilities, utility_func, y_test):
         decisions_made = []
-        cumulative_sum = 0
-        average_utility = []
-        for i, expected_utility in enumerate(zip(*expected_utilities), start=1):
-            # Make decision
+        utilities = []
+        for i, expected_utility in enumerate(zip(*expected_utilities)):
             max_utility = max(expected_utility)
             decision = expected_utility.index(max_utility)
             decisions_made.append(decision)
-
-            # Compute cumulative average utility
-            cumulative_sum += utility_func(y_test[i - 1], decision)
-            average_utility.append(cumulative_sum / i)
+            utilities.append(utility_func(y_test[i], decision))
             
-        return average_utility, decisions_made
+        return decisions_made, utilities

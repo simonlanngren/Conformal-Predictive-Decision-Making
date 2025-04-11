@@ -2,117 +2,65 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn import datasets
 from sklearn.datasets import make_regression, make_friedman1, make_friedman2, make_friedman3
 from sklearn.preprocessing import MinMaxScaler
 
 class DataGeneration:    
     @staticmethod
-    def generate_diabetes_data():
-        scaler = MinMaxScaler()
-        diabetes = datasets.load_diabetes()
-        X = diabetes.data
-        y = diabetes.target
-        
-        y_scaled = scaler.fit_transform(y.reshape(-1, 1)).ravel()
-
-        # Convert to DataFrame
-        df = pd.DataFrame(X, columns=[f'Feature_{i}' for i in range(X.shape[1])])
-        df['Target'] = y_scaled
-        return df
-        
-    @staticmethod
-    def generate_distribution(df_params):
-        N = df_params['N']
-        F = df_params['F']
-        relationship = df_params['feature_target_relationship']
-        n_informative = df_params['n_informative']
-        scaler = MinMaxScaler()
-        random_state = df_params['random_state']
-        noise = df_params['noise']
-        
-        np.random.seed(random_state)
-
-        
+    def generate_data(n_samples=10000, n_features=20, n_informative=5, relationship='make_regression', noise=0.1, random_state=None):
         if relationship == 'make_regression':
-            X, y = make_regression(n_samples=N, n_informative= n_informative, n_features=F, noise=noise, random_state=random_state)
-        
+            X, y = make_regression(n_samples=n_samples, n_features=n_features, n_informative= n_informative, noise=noise, random_state=random_state)
+            
         elif relationship == 'friedman1':
-            X, y = make_friedman1(n_samples=N, n_features=F, noise=noise, random_state=random_state)
-        
+            X, y = make_friedman1(n_samples=n_samples, n_features=n_features, noise=noise, random_state=random_state)
+            
         elif relationship == 'friedman2':
+            X, y = make_friedman2(n_samples=n_samples, noise=noise, random_state=random_state)
+            
             # Friedman2 only supports 4 features
-            X, y = make_friedman2(n_samples=N, noise=noise, random_state=random_state)
-            if F > 4:
-                noise_features = np.random.rand(N, F - 4)
-                X = np.hstack((X, noise_features))
-        
+            friedman2_n_features = 4
+            if n_features > friedman2_n_features:
+                uninformative_features = np.random.rand(n_samples, n_features - friedman2_n_features)
+                X = np.hstack((X, uninformative_features))
+            
         elif relationship == 'friedman3':
+            X, y = make_friedman3(n_samples=n_samples, noise=noise, random_state=random_state)
+            
             # Friedman3 only supports 4 features
-            X, y = make_friedman3(n_samples=N, noise=noise, random_state=random_state)
-            if F > 4:
-                noise_features = np.random.rand(N, F - 4)
-                X = np.hstack((X, noise_features))
-        
+            friedman3_n_features = 4
+            if n_features > friedman3_n_features:
+                uninformative_features = np.random.rand(n_samples, n_features - friedman3_n_features)
+                X = np.hstack((X, uninformative_features))
+            
         else:
             raise ValueError(f"Unsupported relationship: {relationship}")
 
         # Min-max scale the target
+        scaler = MinMaxScaler()
         y_scaled = scaler.fit_transform(y.reshape(-1, 1)).ravel()
 
         # Convert to DataFrame
         df = pd.DataFrame(X, columns=[f'Feature_{i}' for i in range(X.shape[1])])
         df['Target'] = y_scaled
+        
         return df
 
     @staticmethod
-    def plot_histograms_and_metrics(df, df_params):
-        plt.figure(figsize=(12, 4))
-
-        # Target distribution
-        plt.subplot(1, 2, 1)
-        sns.histplot(data=df, x='Target', bins=30, kde=True, edgecolor='black')
+    def plot_target_distribution(df, figsize=(12, 4), bins=30, kde=True):
+        plt.figure(figsize=figsize)
+        sns.histplot(data=df, x='Target', bins=bins, kde=kde, edgecolor='black')
         plt.title('Target Distribution')
         plt.xlabel('Target')
         plt.ylabel('Frequency')
-
-        # First feature distribution
-        plt.subplot(1, 2, 2)
-        sns.histplot(data=df, x='Feature_0', bins=30, kde=True, edgecolor='black')
+        plt.tight_layout()
+        plt.show()
+        
+    @staticmethod
+    def plot_first_feature_distribution(df, figsize=(12, 4), bins=30, kde=True):
+        plt.figure(figsize=figsize)
+        sns.histplot(data=df, x='Target', bins=bins, kde=kde, edgecolor='black')
         plt.title('Feature_0 Distribution')
         plt.xlabel('Feature_0')
         plt.ylabel('Frequency')
-
         plt.tight_layout()
         plt.show()
-
-        # Extract parameters
-        F = df_params.get('F')
-        n_informative = df_params.get('n_informative')
-        relationship = df_params.get('feature_target_relationship')
-
-        # Determine number of informative features based on sklearn's definitions
-        informative_lookup = {
-            'make_regression': n_informative,
-            'friedman1': 5,             # Friedman1 uses 5 informative features
-            'friedman2': 4,             # Friedman2 uses 4
-            'friedman3': 4              # Friedman3 uses 4
-        }
-        informative_features = informative_lookup.get(relationship, 'Unknown')
-
-        # Determine underlying feature distribution
-        if relationship in ['friedman1', 'friedman2', 'friedman3']:
-            if F > informative_features:
-                feature_distribution = 'Uniform [0, 1] (plus added noise features)'
-            else:
-                feature_distribution = 'Uniform [0, 1]'
-        elif relationship == 'make_regression':
-            feature_distribution = 'Standard Normal (mean=0, std=1)'
-        else:
-            feature_distribution = 'Unknown'
-
-        # Print metrics
-        print("\n--- Dataset Info ---")
-        print(f"Number of features: {F}")
-        print(f"Number of informative features: {informative_features}")
-        print(f"Underlying feature distribution: {feature_distribution}")

@@ -1,18 +1,17 @@
 import numpy as np
 from copy import deepcopy
 
-class PredictiveDecisionMaking:
+class PredictiveBinaryDecisionMaking:
     @staticmethod
-    def inductive_predictive_decision_making(X_train, y_train, X_test, y_test, utility_func, model, threshold):
+    def inductive(model, utility_func, threshold, X_train, y_train, X_test, y_test):
         model.fit(X_train, y_train)
         y_pred = model.predict(X_test)
         decisions_made = np.where(y_pred >= threshold, 1, 0)
         utilities = [utility_func(y, d) for y, d in zip(y_test, decisions_made)]
-        average_utility = np.cumsum(utilities) / np.arange(1, len(utilities) + 1)
-        return  average_utility, decisions_made
+        return utilities
 
     @staticmethod
-    def online_predictive_decision_making(X_train, y_train, X_test, y_test, utility_func, model, threshold):
+    def online(model, utility_func, threshold, X_train, y_train, X_test, y_test):
         X_seen = X_train
         y_seen = y_train
         decisions_made = []
@@ -25,6 +24,4 @@ class PredictiveDecisionMaking:
             y_seen = np.hstack((y_seen, y_test[i]))
 
         utilities = [utility_func(y, d) for y, d in zip(y_test, decisions_made)]
-        average_utility = np.cumsum(utilities) / np.arange(1, len(utilities) + 1)
-        return  average_utility, decisions_made
-
+        return  utilities

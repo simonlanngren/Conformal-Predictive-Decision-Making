@@ -16,46 +16,42 @@ class ModelSelection:
 
         return best_params, best_score
     
-    # TODO update name and check parameters
     @staticmethod
-    def online_KFold_knn(X_train, y_train, epsilon=0.05, k_values=[1, 3, 5, 7, 10, 12], n_jobs=-1):
-
-        def eval_sample(cps_model, x, y, epsilon):
+    def online_cpdm_model_selection_knn(X_train, y_train, search_space, n_splits=5, random_state=None):
+        def eval_sample(cps_model, x, y, epsilon=0.05):
             tau = np.random.uniform(0, 1)
             cpd = cps_model.predict_cpd(x=x)
             Gamma = cpd.predict_set(tau=tau, epsilon=epsilon)
             return cpd.err(Gamma=Gamma, y=y)
 
-        def eval_k(k, splits):
+        def eval_k(k, kf, X, y):
             cv_errors = []
-            for train_idx, val_idx in splits:
-                X_train_cv, X_val_cv = X_train[train_idx], X_train[val_idx]
-                y_train_cv, y_val_cv = y_train[train_idx], y_train[val_idx]
+            for train_idx, val_idx in kf.split(X):
+                X_train, y_train = X[train_idx], y[train_idx]
+                X_val, y_val = X[val_idx], y[val_idx]
 
-                cps_cv = NearestNeighboursPredictionMachine(k=k)
-                cps_cv.learn_initial_training_set(X_train_cv, y_train_cv)
+                cps = NearestNeighboursPredictionMachine(k=k)
+                cps.learn_initial_training_set(X_train, y_train)
 
-                val_errors = Parallel(n_jobs=n_jobs)(
-                    delayed(eval_sample)(cps_cv, x, y, epsilon)
-                    for x, y in zip(X_val_cv, y_val_cv)
+                val_errors = Parallel(n_jobs=-1)(
+                    delayed(eval_sample)(cps, x, y)
+                    for x, y in zip(X_val, y_val)
                 )
 
                 cv_errors.append(np.mean(val_errors))
 
             return k, np.mean(cv_errors)
 
-        # Precompute KFold splits once
-        kf = KFold(n_splits=5, shuffle=True)
-        splits = list(kf.split(X_train))
+        # Setup
+        kf = KFold(n_splits=n_splits, shuffle=True, random_state=random_state)
+        valid_ks = [k for k in search_space["n_neighbors"] if k <= len(X_train)*(1 - 1/n_splits)]
 
-        # Keep only valid k-values
-        k_values = [k for k in k_values if k <= len(X_train) * 0.8]
-
-        results = Parallel(n_jobs=n_jobs)(
-            delayed(eval_k)(k, splits) for k in k_values
+        results = Parallel(n_jobs=-1)(
+            delayed(eval_k)(k, kf, X_train, y_train) for k in valid_ks
         )
-
+        
         best_k, _ = min(results, key=lambda x: x[1])
+        
         return best_k
 
     @staticmethod

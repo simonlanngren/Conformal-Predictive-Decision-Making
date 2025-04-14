@@ -64,7 +64,7 @@ class CPDM:
         return utilities
 
     @staticmethod
-    def online_v1(cps, Decisions, utility_func, X_train, y_train, X_test, y_test, epsilon=0.05):
+    def online_v1(cps, Decisions, utility_func, X_train, y_train, X_test, y_test, search_space_knn, n_splits=5, random_state=None):
         expected_utilities = []
         for i, d in enumerate(Decisions):
             # Create the new sequences
@@ -73,15 +73,21 @@ class CPDM:
             X_seen = X_train
             y_seen = y_train_d
 
+            # TODO add check if we want to perform model selection or not
             if isinstance(cps, NearestNeighboursPredictionMachine):
                 # Ensure the labels are distinct for KNN
                 y_seen   += np.random.normal(scale=1e-6, size=y_seen.shape)
                 y_test_d += np.random.normal(scale=1e-6, size=y_test_d.shape)
 
-                # TODO allow for setting kfold parameters
                 # Hyperparameter tuning for k
-                best_k = ModelSelection.online_KFold_knn(X_seen, y_seen, epsilon)
-                cps_d  = NearestNeighboursPredictionMachine(k=best_k)
+                best_k = ModelSelection.online_cpdm_model_selection_knn(
+                    X_seen,
+                    y_seen,
+                    search_space=search_space_knn,
+                    n_splits=n_splits,
+                    random_state=random_state
+                )
+                cps_d = NearestNeighboursPredictionMachine(k=best_k)
             else:
                 cps_d = deepcopy(cps)
             
@@ -99,13 +105,19 @@ class CPDM:
                 # Learn new object
                 cps_d.learn_one(x=x, y=y, precomputed=precomputed)  # We pass precomputed as an argument to avoid redundant computations
                 
+                # TODO add check if we want to perform model selection or not
                 # Update X_seen and y_seen for hyperparameter tuning of KNN
                 if isinstance(cps, NearestNeighboursPredictionMachine):
                     X_seen = np.append(X_seen, [x], axis=0)
                     y_seen = np.append(y_seen, [y])
                     
-                    # TODO allow for setting kfold parameters
-                    best_k = ModelSelection.online_KFold_knn(X_seen, y_seen)
+                    best_k = ModelSelection.online_cpdm_model_selection_knn(
+                        X_seen,
+                        y_seen,
+                        search_space=search_space_knn,
+                        n_splits=n_splits,
+                        random_state=random_state
+                    )
                     cps_d.k = best_k
             
             expected_utilities.append(expected_utilities_d)
@@ -115,15 +127,21 @@ class CPDM:
         return utilities
     
     @staticmethod
-    def online_v2(cps, Decisions, utility_func, X_train, y_train, X_test, y_test, epsilon=0.05):
+    def online_v2(cps, Decisions, utility_func, X_train, y_train, X_test, y_test, search_space_knn, n_splits=5, random_state=None):
         X_seen = X_train
         y_seen = y_train
         
+        # TODO add check if we want to perform model selection or not
         if isinstance(cps, NearestNeighboursPredictionMachine):
-            # TODO allow for setting kfold parameters
-            # hyperparameter tuning for k
-            best_k = ModelSelection.online_KFold_knn(X_seen, y_seen, epsilon)
-            chosen_cps = NearestNeighboursPredictionMachine(k=best_k)  # Use optimal k
+            # Hyperparameter tuning for k
+            best_k = ModelSelection.online_cpdm_model_selection_knn(
+                X_seen,
+                y_seen,
+                search_space=search_space_knn,
+                n_splits=n_splits,
+                random_state=random_state
+            )
+            chosen_cps = NearestNeighboursPredictionMachine(k=best_k)
         else:
             chosen_cps = deepcopy(cps)
             
@@ -142,14 +160,20 @@ class CPDM:
             # Learn new object
             chosen_cps.learn_one(x=x, y=y, precomputed=precomputed)
             
+            # TODO add check if we want to perform model selection or not
             # Update X_seen and y_seen to fo hyperparameter tuning for knn
             if isinstance(cps, NearestNeighboursPredictionMachine):
                 X_seen = np.append(X_seen, [x], axis=0)
                 y_seen = np.append(y_seen, [y])
 
-                # TODO allow for setting kfold parameters
-                # hyperparameter tuning for k
-                best_k = ModelSelection.online_KFold_knn(X_seen, y_seen)
+                # Hyperparameter tuning for k
+                best_k = ModelSelection.online_cpdm_model_selection_knn(
+                    X_seen,
+                    y_seen,
+                    search_space=search_space_knn,
+                    n_splits=n_splits,
+                    random_state=random_state,
+                )
                 
                 chosen_cps.k = best_k 
         

@@ -130,22 +130,22 @@ class Main:
                 )
             elif mode == "Online":
                 res = self._online_setting(
-                        X_train,
-                        y_train,
-                        X_test,
-                        y_test,
-                        run_v1=run_v1,
-                        run_v2=run_v2,
-                        return_predictive=return_predictive,
-                        include_knn=include_knn,
-                        include_ridge=include_ridge,
-                        perform_model_selection=perform_model_selection,
-                        n_splits=n_splits,
-                        search_space_knn=search_space_knn,
-                        search_space_ridge=search_space_knn,
-                        include_bayesian_ridge=include_bayesian_ridge,
-                        include_gp=include_gp,
-                        random_state=random_state
+                    X_train,
+                    y_train,
+                    X_test,
+                    y_test,
+                    run_v1=run_v1,
+                    run_v2=run_v2,
+                    return_predictive=return_predictive,
+                    include_knn=include_knn,
+                    include_ridge=include_ridge,
+                    perform_model_selection=perform_model_selection,
+                    n_splits=n_splits,
+                    search_space_knn=search_space_knn,
+                    search_space_ridge=search_space_ridge,
+                    include_bayesian_ridge=include_bayesian_ridge,
+                    include_gp=include_gp,
+                    random_state=random_state
                 )
             else:
                 raise ValueError(f"Unsupported learning mode: {mode}")
@@ -367,7 +367,6 @@ class Main:
         perform_model_selection=False,
         n_splits=5,
         search_space_knn=None,
-        search_space_ridge=None,
         include_bayesian_ridge=True,
         include_gp=True,
         random_state=None
@@ -384,7 +383,10 @@ class Main:
                     X_train,
                     y_train,
                     X_test,
-                    y_test
+                    y_test,
+                    search_space_knn=search_space_knn,
+                    n_splits=n_splits,
+                    random_state=random_state
                 )
                 res["v1 - KNN"] = utilities
                 
@@ -396,7 +398,10 @@ class Main:
                     X_train,
                     y_train,
                     X_test,
-                    y_test
+                    y_test,
+                    search_space_knn=search_space_knn,
+                    n_splits=n_splits,
+                    random_state=random_state
                 )
                 res["v2 - KNN"] = utilities
 
@@ -427,7 +432,9 @@ class Main:
                     X_train,
                     y_train,
                     X_test,
-                    y_test
+                    y_test,
+                    n_splits=n_splits,
+                    random_state=random_state
                 )
                 res["v1 - Ridge"] = utilities
                 
@@ -439,14 +446,16 @@ class Main:
                     X_train,
                     y_train,
                     X_test,
-                    y_test
+                    y_test,
+                    n_splits=n_splits,
+                    random_state=random_state
                 )
                 res["v2 - Ridge"] = utilities
             
             if return_predictive:
                 # TODO add possibility to set the parameters
                 # TODO Check what parameters setting RPM support
-                # TODO Hyperparameter tuning 
+                # TODO Hyperparameter tuning
                 ridge = Ridge()
                 utilities = PredictiveBinaryDecisionMaking.online(
                     ridge,

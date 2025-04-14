@@ -101,7 +101,6 @@ class Main:
                 print(f"Train set size: {len(y_train)}")
                 print(f"Calibration set size: {len(y_cal)}")
                 print(f"Test set size: {len(y_test)}")
-                # TODO print the significance and coverage level
                 if mode == "Inductive":
                     print(f"Significance and Coverage level (assuming they are the same): {CPDM.compute_significance_and_coverage(h=len(y_cal))*100}%")
                 print("----------------------------------------")

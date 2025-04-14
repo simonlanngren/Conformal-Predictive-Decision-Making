@@ -15,6 +15,7 @@ from sklearn.neighbors import KNeighborsRegressor
 from sklearn.linear_model import Ridge, BayesianRidge
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
+from scipy.optimize import fmin_l_bfgs_b
 
 from online_cp.CPS import RidgePredictionMachine
 from online_cp.CPS import NearestNeighboursPredictionMachine
@@ -59,7 +60,11 @@ class Main:
         perform_model_selection=False,
         n_splits=5,
         search_space_knn=None,
-        search_space_ridge=None
+        search_space_ridge=None,
+        
+        # model_parameters_config
+        n_neighbors=5,
+        alpha=0.01,
     ):
 
         if plot_distributions:
@@ -179,7 +184,9 @@ class Main:
         search_space_ridge=None,
         include_bayesian_ridge=True,
         include_gp=True,
-        random_state=None
+        random_state=None,
+        n_neighbors = 5,
+        alpha = 0.01,
     ):
         models = []
         if perform_model_selection:
@@ -195,24 +202,28 @@ class Main:
             )
         else:
             if include_knn:
-                # TODO add possibility to set the parameters 
-                knn = KNeighborsRegressor()
+                knn = KNeighborsRegressor(n_neighbors = n_neighbors, metric="euclidean")
                 models.append(knn)
             
             if include_ridge:
-                # TODO add possibility to set the parameters 
-                ridge = Ridge()
+                ridge = Ridge(alpha=alpha)
                 models.append(ridge)
         
         bayesian_models = []
         if include_bayesian_ridge:
-            # TODO add possibility to set the parameters 
             bayes_ridge = BayesianRidge()
             bayesian_models.append(bayes_ridge)
         
-        if include_gp:
-            # TODO add possibility to set the parameters 
-            gp = GaussianProcessRegressor(kernel=C(1.0) * RBF(length_scale=1.0), alpha=1e-3, normalize_y=True)
+        if include_gp:            
+            def custom_optimizer(obj_func, initial_theta, bounds):
+                theta_opt, func_min, _ = fmin_l_bfgs_b(obj_func, initial_theta, bounds=bounds, maxiter=50000)
+                return theta_opt, func_min
+            
+            gp = GaussianProcessRegressor(
+                kernel = C(1.0, constant_value_bounds=(1e-06, 1e6)) * RBF(length_scale=1.0, length_scale_bounds=(1e-06, 1e6)),
+                optimizer = custom_optimizer, 
+                normalize_y = True,
+                random_state = random_state)
             bayesian_models.append(gp)
         
         # TODO Maybe change name from res
@@ -313,7 +324,7 @@ class Main:
             best_params_knn, _ = ModelSelection.model_selection(
                 X_train,
                 y_train,
-                estimator=KNeighborsRegressor(),
+                estimator=KNeighborsRegressor(metric="euclidean"),
                 param_grid=search_space_knn,
                 n_splits=n_splits,
                 random_state=random_state,
@@ -321,7 +332,7 @@ class Main:
                 verbose=2,
                 scoring="neg_mean_squared_error"
             )
-            knn = KNeighborsRegressor(**best_params_knn)
+            knn = KNeighborsRegressor(metric="euclidean", **best_params_knn)
             models.append(knn)
                 
         if include_ridge:
@@ -448,7 +459,6 @@ class Main:
                 res["Ridge Pred"] = utilities
                 
         if include_bayesian_ridge:
-            # TODO add possibility to set the parameters
             bayes_ridge = BayesianRidge()
             if run_v1:
                 utilities = BDT.online_v1(
@@ -487,8 +497,16 @@ class Main:
                 res["Bayes Ridge Pred"] = utilities
             
         if include_gp:
-            # TODO add possibility to set the parameters
-            gp = GaussianProcessRegressor(kernel=C(1.0) * RBF(length_scale=1.0), alpha=1e-3, normalize_y=True)
+            def custom_optimizer(obj_func, initial_theta, bounds):
+                theta_opt, func_min, _ = fmin_l_bfgs_b(obj_func, initial_theta, bounds=bounds, maxiter=50000)
+                return theta_opt, func_min
+            
+            gp = GaussianProcessRegressor(
+                kernel = C(1.0, constant_value_bounds=(1e-07, 1e7)) * RBF(length_scale=1.0, length_scale_bounds=(1e-07, 1e7)),
+                optimizer = custom_optimizer, 
+                normalize_y = True,
+                random_state = random_state)
+            
             if run_v1:
                 utilities = BDT.online_v1(
                     gp,

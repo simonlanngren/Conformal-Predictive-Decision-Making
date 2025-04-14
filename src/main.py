@@ -142,7 +142,6 @@ class Main:
                     perform_model_selection=perform_model_selection,
                     n_splits=n_splits,
                     search_space_knn=search_space_knn,
-                    search_space_ridge=search_space_ridge,
                     include_bayesian_ridge=include_bayesian_ridge,
                     include_gp=include_gp,
                     random_state=random_state
@@ -447,6 +446,7 @@ class Main:
                     y_train,
                     X_test,
                     y_test,
+                    search_space_knn,
                     n_splits=n_splits,
                     random_state=random_state
                 )

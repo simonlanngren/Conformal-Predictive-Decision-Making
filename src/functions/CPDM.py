@@ -2,6 +2,7 @@ import numpy as np
 from crepes import WrapRegressor
 from copy import deepcopy
 from online_cp.CPS import NearestNeighboursPredictionMachine
+from scipy.optimize import root_scalar
 from .Utility import Utility
 from .model_selection import ModelSelection
 
@@ -155,3 +156,12 @@ class CPDM:
         _, utilities = Utility.make_decisions(expected_utilities, utility_func, y_test)
 
         return utilities
+
+    @staticmethod
+    def compute_significance_and_coverage(h):
+        def equation(epsilon):
+            return 2 * h * epsilon**2 + np.log(epsilon)
+        
+        result = root_scalar(equation, bracket=[1e-10, 1], method='brentq')
+        
+        return round(result.root, 2)

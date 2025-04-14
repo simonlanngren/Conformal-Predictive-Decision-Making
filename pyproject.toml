@@ -1,11 +1,10 @@
 [project]
 name = "conformal-predictive-decision-making"
 version = "0.1.0"
-description = "Add your description here"
+description = "A complete experimental setup for comparison of bayesian decision theory and conformal predictive decision making."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "checkpointer>=2.6.0",
     "crepes>=0.7.1",
     "ipykernel>=6.29.5",
     "ipywidgets>=8.1.5",
@@ -15,8 +14,5 @@ dependencies = [
     "online-cp>=0.0.7",
     "pandas>=2.2.3",
     "scikit-learn>=1.6.1",
-    "scikit-optimize>=0.10.2",
-    "scipy>=1.15.2",
     "seaborn>=0.13.2",
-    "tqdm>=4.67.1",
 ]

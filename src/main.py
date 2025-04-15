@@ -68,9 +68,11 @@ class Main:
             DataGeneration.plot_first_feature_distribution(data)
         
         experiment = defaultdict(list)
+        
         for i in range(n_runs):
             # Draw bootstrap sample
             bootstrap_data = data.sample(n=sample_size, replace=True, random_state=random_state)
+            bootstrap_data = DataGeneration.add_epsilon_to_duplicates(bootstrap_data, target_column="Target")
             X = bootstrap_data.drop(columns=["Target"])
             y = bootstrap_data["Target"]
         

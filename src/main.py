@@ -57,14 +57,10 @@ class Main:
         plot_confidence=0.95,
 
         # model_selection_config
-        perform_model_selection=False,
         n_splits=5,
         search_space_knn=None,
         search_space_ridge=None,
         
-        # model_parameters_config
-        n_neighbors=5,
-        alpha=0.01,
     ):
 
         if plot_distributions:
@@ -120,7 +116,6 @@ class Main:
                     return_predictive=return_predictive,
                     include_knn=include_knn,
                     include_ridge=include_ridge,
-                    perform_model_selection=perform_model_selection,
                     n_splits=n_splits,
                     search_space_knn=search_space_knn,
                     search_space_ridge=search_space_ridge,
@@ -139,7 +134,6 @@ class Main:
                     return_predictive=return_predictive,
                     include_knn=include_knn,
                     include_ridge=include_ridge,
-                    perform_model_selection=perform_model_selection,
                     n_splits=n_splits,
                     search_space_knn=search_space_knn,
                     include_bayesian_ridge=include_bayesian_ridge,
@@ -178,36 +172,26 @@ class Main:
         return_predictive=False,
         include_knn=True,
         include_ridge=True,
-        perform_model_selection=False,
         n_splits=5,
         search_space_knn=None,
         search_space_ridge=None,
         include_bayesian_ridge=True,
         include_gp=True,
         random_state=None,
-        n_neighbors = 5,
-        alpha = 0.01,
     ):
         models = []
-        if perform_model_selection:
-            models = self._select_frequentist_models(
-                X_train,
-                y_train,
-                include_knn=include_knn,
-                include_ridge=include_ridge,
-                n_splits=n_splits,
-                search_space_knn=search_space_knn,
-                search_space_ridge=search_space_ridge,
-                random_state=random_state
-            )
-        else:
-            if include_knn:
-                knn = KNeighborsRegressor(n_neighbors = n_neighbors, metric="euclidean")
-                models.append(knn)
-            
-            if include_ridge:
-                ridge = Ridge(alpha=alpha)
-                models.append(ridge)
+
+        models = self._select_frequentist_models(
+            X_train,
+            y_train,
+            include_knn=include_knn,
+            include_ridge=include_ridge,
+            n_splits=n_splits,
+            search_space_knn=search_space_knn,
+            search_space_ridge=search_space_ridge,
+            random_state=random_state
+        )
+
         
         bayesian_models = []
         if include_bayesian_ridge:
@@ -226,7 +210,6 @@ class Main:
                 random_state = random_state)
             bayesian_models.append(gp)
         
-        # TODO Maybe change name from res
         res = {}
         for model in models:
             if run_v1:
@@ -363,7 +346,6 @@ class Main:
         return_predictive=False,
         include_knn=True,
         include_ridge=True,
-        perform_model_selection=False,
         n_splits=5,
         search_space_knn=None,
         include_bayesian_ridge=True,
@@ -372,7 +354,6 @@ class Main:
     ):
         res = {}
         if include_knn:
-            # TODO add possibility to set the parameters
             nnpm = NearestNeighboursPredictionMachine(k=5)  # Set to 5 just to be able to create object
             if run_v1:
                 utilities = CPDM.online_v1(

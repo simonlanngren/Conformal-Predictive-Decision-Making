@@ -13,6 +13,7 @@ from sklearn.model_selection import train_test_split
 
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.linear_model import Ridge, BayesianRidge
+from sklearn.kernel_ridge import KernelRidge
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
 from scipy.optimize import fmin_l_bfgs_b
@@ -50,6 +51,7 @@ class Main:
         # models_config
         include_ridge=True,
         include_knn=True,
+        include_krr=True,
         include_bayesian_ridge=True,
         include_gp=True,
 
@@ -64,6 +66,7 @@ class Main:
         n_splits=5,
         search_space_knn=None,
         search_space_ridge=None,
+        search_space_krr=None
     ):
 
         if plot_distributions:
@@ -71,7 +74,6 @@ class Main:
             DataGeneration.plot_first_feature_distribution(data)
         
         experiment = defaultdict(list)
-        
         for i in tqdm(range(n_runs), desc="Processing runs"):            
             # Draw bootstrap sample
             bootstrap_data = data.sample(n=sample_size, replace=True, random_state=random_state)
@@ -122,9 +124,11 @@ class Main:
                     run_predictive=run_predictive,
                     include_knn=include_knn,
                     include_ridge=include_ridge,
+                    include_krr=include_krr,
                     n_splits=n_splits,
                     search_space_knn=search_space_knn,
                     search_space_ridge=search_space_ridge,
+                    search_space_krr=search_space_krr,
                     include_bayesian_ridge=include_bayesian_ridge,
                     include_gp=include_gp,
                     random_state=random_state
@@ -179,9 +183,11 @@ class Main:
         run_predictive=False,
         include_knn=True,
         include_ridge=True,
+        include_krr=True,
         n_splits=5,
         search_space_knn=None,
         search_space_ridge=None,
+        search_space_krr=None,
         include_bayesian_ridge=True,
         include_gp=True,
         random_state=None,
@@ -193,9 +199,11 @@ class Main:
             y_train,
             include_knn=include_knn,
             include_ridge=include_ridge,
+            include_krr=include_krr,
             n_splits=n_splits,
             search_space_knn=search_space_knn,
             search_space_ridge=search_space_ridge,
+            search_space_krr=search_space_krr,
             random_state=random_state
         )
 
@@ -292,9 +300,11 @@ class Main:
         y_train,
         include_knn=True,
         include_ridge=True,
+        include_krr=True,
         n_splits=5,
         search_space_knn=None,
         search_space_ridge=None,
+        search_space_krr=None,
         random_state=None
     ):
         models = []
@@ -325,6 +335,21 @@ class Main:
             )
             ridge = Ridge(random_state=random_state, **best_params_ridge)
             models.append(ridge)
+            
+        if include_krr:
+            best_params_krr, _ = ModelSelection.model_selection(
+                X_train,
+                y_train,
+                estimator=KernelRidge(kernel=C(1.0, constant_value_bounds=(1e-7, 1e7)) * RBF(length_scale=1.0, length_scale_bounds=(1e-7, 1e7))),
+                param_grid=search_space_krr,
+                n_splits=n_splits,
+                random_state=random_state,
+                n_jobs=-1,
+                scoring="neg_mean_squared_error"
+            )
+            best_kernel = C(best_params_krr['kernel__k1__constant_value']) * RBF(best_params_krr['kernel__k2__length_scale'])
+            krr = KernelRidge(kernel=best_kernel, alpha=best_params_krr['alpha'])
+            models.append(krr)
         
         return models
                         

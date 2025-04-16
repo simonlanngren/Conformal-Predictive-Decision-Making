@@ -20,6 +20,8 @@ from scipy.optimize import fmin_l_bfgs_b
 from online_cp.CPS import RidgePredictionMachine
 from online_cp.CPS import NearestNeighboursPredictionMachine
 
+from tqdm import tqdm
+
 class Main:
     def __init__(self, threshold, tp, tn, fp, fn):
         self.Decisions={0, 1}
@@ -68,7 +70,7 @@ class Main:
         
         experiment = defaultdict(list)
         
-        for i in range(n_runs):
+        for i in tqdm(range(n_runs), desc="Processing runs"):            
             # Draw bootstrap sample
             bootstrap_data = data.sample(n=sample_size, replace=True, random_state=random_state)
             bootstrap_data = DataGeneration.add_epsilon_to_duplicates(bootstrap_data, target_column="Target")
@@ -101,10 +103,7 @@ class Main:
                 if mode == "Inductive":
                     print(f"Significance and Coverage level (assuming they are the same): {CPDM.compute_significance_and_coverage(h=len(y_cal))*100}%")
                 print("----------------------------------------")
-                
-            # Print progress
-            print(f"Starting run: {i+1}/{n_runs}")
-                
+                                
             if mode == "Inductive":
                 res = self._inductive_setting(
                     X_proper,

@@ -60,7 +60,7 @@ class Plots:
 
             plt.xlabel("Test Case")
             plt.ylabel("Cumulative Average Utility")
-            plt.title(f"Average Utility with Confidence Intervals - {mode} Setting")
+            plt.title(f"Average Utility with {int(confidence * 100)}% Confidence Intervals - {mode} Setting")
             plt.legend(title="Method")
             plt.grid(True)
             plt.tight_layout()
@@ -122,7 +122,7 @@ class Plots:
 
             plt.xlabel("Test Case")
             plt.ylabel("Cumulative Regret")
-            plt.title(f"Cumulative Regret with {int(confidence * 100)}% Confidence - {mode} Setting")
+            plt.title(f"Cumulative Regret with {int(confidence * 100)}% Confidence Intervals - {mode} Setting")
             plt.legend(title="Method")
             plt.grid(True)
             plt.tight_layout()

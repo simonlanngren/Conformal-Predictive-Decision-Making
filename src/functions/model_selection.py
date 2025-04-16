@@ -2,6 +2,7 @@ import numpy as np
 from sklearn.model_selection import GridSearchCV, KFold
 from online_cp.CPS import NearestNeighboursPredictionMachine
 from joblib import Parallel, delayed
+import sys
 
 class ModelSelection:
     @staticmethod
@@ -22,10 +23,14 @@ class ModelSelection:
     @staticmethod
     def online_cpdm_model_selection_knn(X_train, y_train, search_space, n_splits=5, random_state=None):
         def eval_sample(cps_model, x, y, epsilon=0.05):
-            tau = np.random.uniform(0, 1)
-            cpd = cps_model.predict_cpd(x=x)
-            Gamma = cpd.predict_set(tau=tau, epsilon=epsilon)
-            return cpd.err(Gamma=Gamma, y=y)
+            try:
+                tau = np.random.uniform(0, 1)
+                cpd = cps_model.predict_cpd(x=x)
+                Gamma = cpd.predict_set(tau=tau, epsilon=epsilon)
+                return cpd.err(Gamma=Gamma, y=y)
+            except IndexError as e:
+                print(f"IndexError for input x={x}, y={y}: {e}")
+                sys.exit(1)
 
         def eval_k(k, kf, X, y):
             cv_errors = []

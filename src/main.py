@@ -22,6 +22,8 @@ from online_cp.CPS import NearestNeighboursPredictionMachine
 
 from tqdm import tqdm
 
+import numpy as np
+
 class Main:
     def __init__(self, threshold, tp, tn, fp, fn):
         self.Decisions={0, 1}
@@ -73,9 +75,10 @@ class Main:
         for i in tqdm(range(n_runs), desc="Processing runs"):            
             # Draw bootstrap sample
             bootstrap_data = data.sample(n=sample_size, replace=True, random_state=random_state)
-            bootstrap_data = DataGeneration.add_epsilon_to_duplicates(bootstrap_data, target_column="Target")
-            X = bootstrap_data.drop(columns=["Target"])
-            y = bootstrap_data["Target"]
+            distinct_data = DataGeneration.add_epsilon(bootstrap_data)
+            
+            X = distinct_data.drop(columns=["Target"])
+            y = distinct_data["Target"]
         
             # Split data
             X_proper, X_test, y_proper, y_test = train_test_split(X, y, test_size=test_size)
@@ -304,7 +307,6 @@ class Main:
                 n_splits=n_splits,
                 random_state=random_state,
                 n_jobs=-1,
-                verbose=2,
                 scoring="neg_mean_squared_error"
             )
             knn = KNeighborsRegressor(metric="euclidean", n_jobs=-1, **best_params_knn)
@@ -319,7 +321,6 @@ class Main:
                 n_splits=n_splits,
                 random_state=random_state,
                 n_jobs=-1,
-                verbose=2,
                 scoring="neg_mean_squared_error"
             )
             ridge = Ridge(random_state=random_state, **best_params_ridge)

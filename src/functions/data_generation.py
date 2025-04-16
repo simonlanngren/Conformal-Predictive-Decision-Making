@@ -66,24 +66,14 @@ class DataGeneration:
         plt.show()
         
     @staticmethod
-    def add_epsilon_to_duplicates(df: pd.DataFrame, target_column: str = "Target") -> pd.DataFrame:
+    def add_epsilon(df):
         MACHINE_EPSILON = lambda x: np.abs(x) * np.finfo(np.float64).eps
 
-        y = df[target_column].to_numpy()
-        sorted_indices = np.argsort(y)
-        sorted_y = y[sorted_indices]
+        target_array = df["Target"].to_numpy(dtype=np.float64)
+        noise = np.random.uniform(1, 10, size=len(df)) * MACHINE_EPSILON(target_array) * 1e5
+        adjusted_y = target_array + noise
 
-        # Add epsilon to near-duplicate values
-        for i in range(1, len(sorted_y)):
-            if np.isclose(sorted_y[i], sorted_y[i - 1]):
-                sorted_y[i] += MACHINE_EPSILON(sorted_y[i])
-
-        # Restore original order
-        adjusted_y = np.empty_like(sorted_y)
-        adjusted_y[sorted_indices] = sorted_y
-
-        # Create a copy to avoid modifying the original DataFrame
         df_copy = df.copy()
-        df_copy[target_column] = adjusted_y
+        df_copy["Target"] = adjusted_y
 
         return df_copy

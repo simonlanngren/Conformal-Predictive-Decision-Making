@@ -5,7 +5,7 @@ from joblib import Parallel, delayed
 
 class ModelSelection:
     @staticmethod
-    def model_selection(X_train, y_train, estimator, param_grid, n_splits=5, random_state=2025, n_jobs=-1, verbose=0, scoring="neg_mean_squared_error"):
+    def model_selection(X_train, y_train, estimator, param_grid, n_splits=5, random_state=None, n_jobs=-1, scoring="neg_mean_squared_error"):
         cv = KFold(n_splits=n_splits, shuffle=True, random_state=random_state)
 
         grid_search = GridSearchCV(estimator=estimator, param_grid=param_grid, n_jobs=n_jobs, cv=cv, verbose=0, scoring=scoring)

@@ -33,8 +33,6 @@ cffi==1.17.1
     # via argon2-cffi-bindings
 charset-normalizer==3.4.1
     # via requests
-checkpointer==2.7.0
-    # via conformal-predictive-decision-making (pyproject.toml)
 comm==0.2.2
     # via
     #   ipykernel
@@ -102,7 +100,6 @@ joblib==1.4.2
     # via
     #   online-cp
     #   scikit-learn
-    #   scikit-optimize
 json5==0.12.0
     # via jupyterlab-server
 jsonpointer==3.0.0
@@ -204,7 +201,6 @@ numpy==2.2.4
     #   online-cp
     #   pandas
     #   scikit-learn
-    #   scikit-optimize
     #   scipy
     #   seaborn
 online-cp==0.0.7
@@ -220,7 +216,6 @@ packaging==24.2
     #   jupyterlab-server
     #   matplotlib
     #   nbconvert
-    #   scikit-optimize
 pandas==2.2.3
     # via
     #   conformal-predictive-decision-making (pyproject.toml)
@@ -250,8 +245,6 @@ ptyprocess==0.7.0
     #   terminado
 pure-eval==0.2.3
     # via stack-data
-pyaml==25.1.0
-    # via scikit-optimize
 pycparser==2.22
     # via cffi
 pygments==2.19.1
@@ -273,9 +266,7 @@ python-json-logger==3.3.0
 pytz==2025.2
     # via pandas
 pyyaml==6.0.2
-    # via
-    #   jupyter-events
-    #   pyaml
+    # via jupyter-events
 pyzmq==26.4.0
     # via
     #   ipykernel
@@ -302,10 +293,6 @@ rpds-py==0.24.0
     #   jsonschema
     #   referencing
 scikit-learn==1.6.1
-    # via
-    #   conformal-predictive-decision-making (pyproject.toml)
-    #   scikit-optimize
-scikit-optimize==0.10.2
     # via conformal-predictive-decision-making (pyproject.toml)
 scipy==1.15.2
     # via
@@ -313,7 +300,6 @@ scipy==1.15.2
     #   crepes
     #   online-cp
     #   scikit-learn
-    #   scikit-optimize
 seaborn==0.13.2
     # via conformal-predictive-decision-making (pyproject.toml)
 send2trash==1.8.3
@@ -346,8 +332,6 @@ tornado==6.4.2
     #   jupyterlab
     #   notebook
     #   terminado
-tqdm==4.67.1
-    # via conformal-predictive-decision-making (pyproject.toml)
 traitlets==5.14.3
     # via
     #   comm

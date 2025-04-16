@@ -1,5 +1,5 @@
 import numpy as np
-from copy import deepcopy
+from sklearn.base import clone
 from .Utility import Utility
 
 class BDT:
@@ -41,7 +41,7 @@ class BDT:
             expected_utilities_d = []
             for i in range(len(X_test)):
                 # TODO see if we can find a package that supports online bayesian methods natively.
-                model_i = deepcopy(model)
+                model_i = clone(model)
                 model_i.fit(X_seen, y_seen)
                 expected_utility = model_i.predict(X_test[i].reshape(1, -1))
                 expected_utilities_d.append(expected_utility)
@@ -63,7 +63,7 @@ class BDT:
         expected_utilities = []
         preds = []
         for i in range(len(X_test)):
-            model_i = deepcopy(model)
+            model_i = clone(model)
             model_i.fit(X_seen, y_seen)
             pred = model_i.predict(X_test[i].reshape(1, -1))
 

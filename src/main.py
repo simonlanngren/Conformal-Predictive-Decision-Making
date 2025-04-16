@@ -34,7 +34,7 @@ class Main:
         mode="Inductive",
         run_v1=False,
         run_v2=True,
-        return_predictive=False,
+        run_predictive=False,
 
         # data_config
         n_runs=1000,
@@ -60,7 +60,6 @@ class Main:
         n_splits=5,
         search_space_knn=None,
         search_space_ridge=None,
-        
     ):
 
         if plot_distributions:
@@ -103,6 +102,9 @@ class Main:
                     print(f"Significance and Coverage level (assuming they are the same): {CPDM.compute_significance_and_coverage(h=len(y_cal))*100}%")
                 print("----------------------------------------")
                 
+            # Print progress
+            print(f"Starting run: {i+1}/{n_runs}")
+                
             if mode == "Inductive":
                 res = self._inductive_setting(
                     X_proper,
@@ -115,7 +117,7 @@ class Main:
                     y_test,
                     run_v1=run_v1,
                     run_v2=run_v2,
-                    return_predictive=return_predictive,
+                    run_predictive=run_predictive,
                     include_knn=include_knn,
                     include_ridge=include_ridge,
                     n_splits=n_splits,
@@ -133,11 +135,12 @@ class Main:
                     y_test,
                     run_v1=run_v1,
                     run_v2=run_v2,
-                    return_predictive=return_predictive,
+                    run_predictive=run_predictive,
                     include_knn=include_knn,
                     include_ridge=include_ridge,
                     n_splits=n_splits,
                     search_space_knn=search_space_knn,
+                    search_space_ridge=search_space_ridge,
                     include_bayesian_ridge=include_bayesian_ridge,
                     include_gp=include_gp,
                     random_state=random_state
@@ -171,7 +174,7 @@ class Main:
         y_test,
         run_v1=False,
         run_v2=True,
-        return_predictive=False,
+        run_predictive=False,
         include_knn=True,
         include_ridge=True,
         n_splits=5,
@@ -194,7 +197,6 @@ class Main:
             random_state=random_state
         )
 
-        
         bayesian_models = []
         if include_bayesian_ridge:
             bayes_ridge = BayesianRidge()
@@ -206,10 +208,11 @@ class Main:
                 return theta_opt, func_min
             
             gp = GaussianProcessRegressor(
-                kernel = C(1.0, constant_value_bounds=(1e-06, 1e6)) * RBF(length_scale=1.0, length_scale_bounds=(1e-06, 1e6)),
+                kernel = C(1.0, constant_value_bounds=(1e-7, 1e7)) * RBF(length_scale=1.0, length_scale_bounds=(1e-7, 1e7)),
                 optimizer = custom_optimizer, 
                 normalize_y = True,
-                random_state = random_state)
+                random_state = random_state
+            )
             bayesian_models.append(gp)
         
         res = {}
@@ -242,7 +245,7 @@ class Main:
                 )
                 res[f"v2 - {model.__class__.__name__}"] = utilities
             
-            if return_predictive:
+            if run_predictive:
                 utilities = PredictiveBinaryDecisionMaking.inductive(
                     model,
                     self.utility_func,
@@ -278,18 +281,6 @@ class Main:
                     y_test
                 )
                 res[f"v2 - {model.__class__.__name__}"] = utilities
-            
-            if return_predictive:
-                utilities = PredictiveBinaryDecisionMaking.inductive(
-                    model,
-                    self.utility_func,
-                    self.threshold,
-                    X_proper,
-                    y_proper,
-                    X_test,
-                    y_test
-                )
-                res[f"{model.__class__.__name__} Pred"] = utilities
         
         return res
     
@@ -309,7 +300,7 @@ class Main:
             best_params_knn, _ = ModelSelection.model_selection(
                 X_train,
                 y_train,
-                estimator=KNeighborsRegressor(metric="euclidean"),
+                estimator=KNeighborsRegressor(metric="euclidean", n_jobs=-1),
                 param_grid=search_space_knn,
                 n_splits=n_splits,
                 random_state=random_state,
@@ -317,14 +308,14 @@ class Main:
                 verbose=2,
                 scoring="neg_mean_squared_error"
             )
-            knn = KNeighborsRegressor(metric="euclidean", **best_params_knn)
+            knn = KNeighborsRegressor(metric="euclidean", n_jobs=-1, **best_params_knn)
             models.append(knn)
                 
         if include_ridge:
             best_params_ridge, _ = ModelSelection.model_selection(
                 X_train,
                 y_train,
-                estimator=Ridge(),
+                estimator=Ridge(random_state=random_state),
                 param_grid=search_space_ridge,
                 n_splits=n_splits,
                 random_state=random_state,
@@ -332,7 +323,7 @@ class Main:
                 verbose=2,
                 scoring="neg_mean_squared_error"
             )
-            ridge = Ridge(**best_params_ridge)
+            ridge = Ridge(random_state=random_state, **best_params_ridge)
             models.append(ridge)
         
         return models
@@ -345,18 +336,19 @@ class Main:
         y_test,
         run_v1=False,
         run_v2=True,
-        return_predictive=False,
+        run_predictive=False,
         include_knn=True,
         include_ridge=True,
         n_splits=5,
         search_space_knn=None,
+        search_space_ridge=None,
         include_bayesian_ridge=True,
         include_gp=True,
         random_state=None
     ):
         res = {}
         if include_knn:
-            nnpm = NearestNeighboursPredictionMachine(k=5)  # Set to 5 just to be able to create object
+            nnpm = NearestNeighboursPredictionMachine(k=5)
             if run_v1:
                 utilities = CPDM.online_v1(
                     nnpm,
@@ -387,11 +379,8 @@ class Main:
                 )
                 res["v2 - KNN"] = utilities
 
-            if return_predictive:
-                # TODO add possibility to set the parameters
-                # TODO Check what parameters setting NNPM support (can only set k)
-                # TODO Hyperparameter tuning 
-                knn = KNeighborsRegressor(n_neighbors=5)
+            if run_predictive:
+                knn =KNeighborsRegressor(metric="euclidean", n_jobs=-1)
                 utilities = PredictiveBinaryDecisionMaking.online(
                     knn,
                     self.utility_func,
@@ -399,12 +388,14 @@ class Main:
                     X_train,
                     y_train,
                     X_test,
-                    y_test
+                    y_test,
+                    param_grid=search_space_knn,
+                    n_splits=n_splits,
+                    random_state=random_state
                 )
                 res["KNN Pred"] = utilities
         
         if include_ridge:
-            # TODO add possibility to set the parameters
             rpm = RidgePredictionMachine(autotune=True)
             if run_v1:
                 utilities = CPDM.online_v1(
@@ -435,11 +426,8 @@ class Main:
                 )
                 res["v2 - Ridge"] = utilities
             
-            if return_predictive:
-                # TODO add possibility to set the parameters
-                # TODO Check what parameters setting RPM support
-                # TODO Hyperparameter tuning
-                ridge = Ridge()
+            if run_predictive:
+                ridge = Ridge(random_state=random_state)
                 utilities = PredictiveBinaryDecisionMaking.online(
                     ridge,
                     self.utility_func,
@@ -447,7 +435,10 @@ class Main:
                     X_train,
                     y_train,
                     X_test,
-                    y_test
+                    y_test,
+                    param_grid=search_space_ridge,
+                    n_splits=n_splits,
+                    random_state=random_state
                 )
                 res["Ridge Pred"] = utilities
                 
@@ -476,18 +467,6 @@ class Main:
                     y_test
                 )         
                 res["v2 - Bayes Ridge"] = utilities
-
-            if return_predictive:
-                utilities = PredictiveBinaryDecisionMaking.online(
-                    bayes_ridge,
-                    self.utility_func,
-                    self.threshold,
-                    X_train,
-                    y_train,
-                    X_test,
-                    y_test
-                )
-                res["Bayes Ridge Pred"] = utilities
             
         if include_gp:
             def custom_optimizer(obj_func, initial_theta, bounds):
@@ -495,10 +474,11 @@ class Main:
                 return theta_opt, func_min
             
             gp = GaussianProcessRegressor(
-                kernel = C(1.0, constant_value_bounds=(1e-07, 1e7)) * RBF(length_scale=1.0, length_scale_bounds=(1e-07, 1e7)),
+                kernel = C(1.0, constant_value_bounds=(1e-7, 1e7)) * RBF(length_scale=1.0, length_scale_bounds=(1e-7, 1e7)),
                 optimizer = custom_optimizer, 
                 normalize_y = True,
-                random_state = random_state)
+                random_state = random_state
+            )
             
             if run_v1:
                 utilities = BDT.online_v1(
@@ -523,17 +503,5 @@ class Main:
                     y_test
                 )            
                 res["v2 - GP"] = utilities
-            
-            if return_predictive:
-                utilities = PredictiveBinaryDecisionMaking.online(
-                    gp,
-                    self.utility_func,
-                    self.threshold,
-                    X_train,
-                    y_train,
-                    X_test,
-                    y_test
-                )
-                res["GP Pred"] = utilities
                 
         return res

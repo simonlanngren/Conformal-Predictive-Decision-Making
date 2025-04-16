@@ -73,7 +73,6 @@ class CPDM:
             X_seen = X_train
             y_seen = y_train_d
 
-            # TODO add check if we want to perform model selection or not
             if isinstance(cps, NearestNeighboursPredictionMachine):
                 # Ensure the labels are distinct for KNN
                 y_seen   += np.random.normal(scale=1e-6, size=y_seen.shape)
@@ -96,7 +95,7 @@ class CPDM:
             expected_utilities_d = []
             for x, y in zip(X_test, y_test_d):
                 # Produce conformal predictive distribution
-                cpd, precomputed = cps_d.predict_cpd(x=x, return_update=True) # TODO Why don't we need a tau here?
+                cpd, precomputed = cps_d.predict_cpd(x=x, return_update=True)
 
                 # Compute the expected utility from the cpd
                 expected_utility = Utility.compute_expected_utility(cpd.y_vals, utility_func, d)
@@ -105,7 +104,6 @@ class CPDM:
                 # Learn new object
                 cps_d.learn_one(x=x, y=y, precomputed=precomputed)  # We pass precomputed as an argument to avoid redundant computations
                 
-                # TODO add check if we want to perform model selection or not
                 # Update X_seen and y_seen for hyperparameter tuning of KNN
                 if isinstance(cps, NearestNeighboursPredictionMachine):
                     X_seen = np.append(X_seen, [x], axis=0)
@@ -131,7 +129,6 @@ class CPDM:
         X_seen = X_train
         y_seen = y_train
         
-        # TODO add check if we want to perform model selection or not
         if isinstance(cps, NearestNeighboursPredictionMachine):
             # Hyperparameter tuning for k
             best_k = ModelSelection.online_cpdm_model_selection_knn(
@@ -160,7 +157,6 @@ class CPDM:
             # Learn new object
             chosen_cps.learn_one(x=x, y=y, precomputed=precomputed)
             
-            # TODO add check if we want to perform model selection or not
             # Update X_seen and y_seen to fo hyperparameter tuning for knn
             if isinstance(cps, NearestNeighboursPredictionMachine):
                 X_seen = np.append(X_seen, [x], axis=0)

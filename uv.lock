@@ -1033,7 +1033,7 @@ wheels = [
 
 [[package]]
 name = "online-cp"
-version = "0.0.8"
+version = "0.0.9"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "joblib" },
@@ -1041,9 +1041,9 @@ dependencies = [
     { name = "numpy" },
     { name = "scipy" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/92/c8/bf7f24d046bac99276e4a4cd3828ed8dcb28cdac1d8c072b55b4520b5f1d/online_cp-0.0.8.tar.gz", hash = "sha256:627c8b8f0896837e8727add69fc457fd73576c691aa822124d5cf1becdf7637c", size = 30367 }
+sdist = { url = "https://files.pythonhosted.org/packages/02/c8/c6a6a7403e42db70265a6e5334fb42d712a2b250f74c8255c434e3fc9a2d/online_cp-0.0.9.tar.gz", hash = "sha256:2aab0c3fef244ae871814a9fc3316b3faaf27571b908d6d22d6d7ad0dbc83636", size = 29625 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/09/01/ff2c1d608a2c5c011cfe1c434dc587e7b154bcb84acdef77bffef4ddc637/online_cp-0.0.8-py3-none-any.whl", hash = "sha256:19de5b0b58bd0d703e5cedab1bcb91e7257a7d7f83c65d72fc0733a1428adf01", size = 32218 },
+    { url = "https://files.pythonhosted.org/packages/2e/ef/60860cca589f498d02d6571d53bf079759f8e9d168ba6f56eaf6715c27dc/online_cp-0.0.9-py3-none-any.whl", hash = "sha256:9033ad404d36b1716a35b24286a2028382040cd140f016896b60b2d94f9b2cab", size = 31383 },
 ]
 
 [[package]]

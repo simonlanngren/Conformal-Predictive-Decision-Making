@@ -75,11 +75,9 @@ class CPDM:
             y_seen = y_train_d
 
             if isinstance(cps, NearestNeighboursPredictionMachine):
-                # Ensure the labels are distinct for KNN
                 y_seen   += np.random.normal(scale=1e-6, size=y_seen.shape)
                 y_test_d += np.random.normal(scale=1e-6, size=y_test_d.shape)
                 
-                # Hyperparameter tuning for k
                 best_k = ModelSelection.online_cpdm_model_selection_knn(
                     X_seen,
                     y_seen,
@@ -88,8 +86,7 @@ class CPDM:
                     random_state=random_state
                 )
                 cps_d = NearestNeighboursPredictionMachine(k=best_k)
-            if isinstance(cps, KernelRidgePredictionMachine):
-                # Hyperparameter tuning
+            elif isinstance(cps, KernelRidgePredictionMachine):
                 best_params = ModelSelection.online_cpdm_model_selection_krr(
                     X_seen,
                     y_seen,
@@ -97,7 +94,7 @@ class CPDM:
                     n_splits=n_splits,
                     random_state=random_state
                 )
-                kernel = C(best_params['kernel__k1__constant_value'])*RBF(length_scale=best_params['kernel__k2__length_scale'])
+                kernel = C(best_params['kernel__k1__constant_value']) * RBF(length_scale=best_params['kernel__k2__length_scale'])
                 cps_d = KernelRidgePredictionMachine(kernel=kernel, a=best_params['alpha'])
             else:
                 cps_d = deepcopy(cps)
@@ -116,24 +113,20 @@ class CPDM:
                 # Learn new object
                 cps_d.learn_one(x=x, y=y, precomputed=precomputed)  # We pass precomputed as an argument to avoid redundant computations
                 
-                # Update X_seen and y_seen for hyperparameter tuning of KNN
-                if isinstance(cps, NearestNeighboursPredictionMachine):
-                    X_seen = np.append(X_seen, [x], axis=0)
-                    y_seen = np.append(y_seen, [y])
+                X_seen = np.append(X_seen, [x], axis=0)
+                y_seen = np.append(y_seen, [y])
                     
+                if isinstance(cps, NearestNeighboursPredictionMachine):
                     best_k = ModelSelection.online_cpdm_model_selection_knn(
                         X_seen,
                         y_seen,
-                        search_space=search_space_knn,
+                        search_space=search_space,
                         n_splits=n_splits,
                         random_state=random_state
                     )
                     cps_d.k = best_k
                 
-                if isinstance(cps, KernelRidgePredictionMachine):
-                    X_seen = np.append(X_seen, [x], axis=0)
-                    y_seen = np.append(y_seen, [y])
-                    
+                if isinstance(cps, KernelRidgePredictionMachine):                    
                     best_params = ModelSelection.online_cpdm_model_selection_krr(
                         X_seen,
                         y_seen,
@@ -141,9 +134,10 @@ class CPDM:
                         n_splits=n_splits,
                         random_state=random_state
                     )
-                    cps_d.kernel = C(best_params['kernel__k1__constant_value'])*RBF(length_scale=best_params['kernel__k2__length_scale'])
+                    cps_d.kernel = C(best_params['kernel__k1__constant_value']) * RBF(length_scale=best_params['kernel__k2__length_scale'])
                     cps_d.a = best_params['alpha']
-            
+
+            expected_utilities_d = []
             expected_utilities.append(expected_utilities_d)
 
         _, utilities = Utility.make_decisions(expected_utilities, utility_func, y_test)
@@ -165,7 +159,7 @@ class CPDM:
                 random_state=random_state
             )
             chosen_cps = NearestNeighboursPredictionMachine(k=best_k)
-        if isinstance(cps, KernelRidgePredictionMachine):
+        elif isinstance(cps, KernelRidgePredictionMachine):
             # Hyperparameter tuning
             best_params = ModelSelection.online_cpdm_model_selection_krr(
                 X_seen,
@@ -174,7 +168,7 @@ class CPDM:
                 n_splits=n_splits,
                 random_state=random_state
             )
-            kernel = C(best_params['kernel__k1__constant_value'])*RBF(length_scale=best_params['kernel__k2__length_scale'])
+            kernel = C(best_params['kernel__k1__constant_value']) * RBF(length_scale=best_params['kernel__k2__length_scale'])
             chosen_cps = KernelRidgePredictionMachine(kernel=kernel, a=best_params['alpha'])
         else:
             chosen_cps = deepcopy(cps)
@@ -194,12 +188,10 @@ class CPDM:
             # Learn new object
             chosen_cps.learn_one(x=x, y=y, precomputed=precomputed)
             
-            # Update X_seen and y_seen to fo hyperparameter tuning for knn
+            X_seen = np.append(X_seen, [x], axis=0)
+            y_seen = np.append(y_seen, [y])
+            
             if isinstance(cps, NearestNeighboursPredictionMachine):
-                X_seen = np.append(X_seen, [x], axis=0)
-                y_seen = np.append(y_seen, [y])
-
-                # Hyperparameter tuning for k
                 best_k = ModelSelection.online_cpdm_model_selection_knn(
                     X_seen,
                     y_seen,
@@ -209,10 +201,8 @@ class CPDM:
                 )
                 
                 chosen_cps.k = best_k 
+            
             if isinstance(cps, KernelRidgePredictionMachine):
-                X_seen = np.append(X_seen, [x], axis=0)
-                y_seen = np.append(y_seen, [y])
-                
                 best_params = ModelSelection.online_cpdm_model_selection_krr(
                     X_seen,
                     y_seen,
@@ -220,7 +210,7 @@ class CPDM:
                     n_splits=n_splits,
                     random_state=random_state
                 )
-                chosen_cps.kernel = C(best_params['kernel__k1__constant_value'])*RBF(length_scale=best_params['kernel__k2__length_scale'])
+                chosen_cps.kernel = C(best_params['kernel__k1__constant_value']) * RBF(length_scale=best_params['kernel__k2__length_scale'])
                 chosen_cps.a = best_params['alpha']
         
         _, utilities = Utility.make_decisions(expected_utilities, utility_func, y_test)

@@ -18,8 +18,7 @@ from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
 from scipy.optimize import fmin_l_bfgs_b
 
-from online_cp.CPS import RidgePredictionMachine
-from online_cp.CPS import NearestNeighboursPredictionMachine
+from online_cp.CPS import RidgePredictionMachine, NearestNeighboursPredictionMachine, KernelRidgePredictionMachine
 
 from tqdm import tqdm
 
@@ -144,9 +143,11 @@ class Main:
                     run_predictive=run_predictive,
                     include_knn=include_knn,
                     include_ridge=include_ridge,
+                    include_krr=include_krr,
                     n_splits=n_splits,
                     search_space_knn=search_space_knn,
                     search_space_ridge=search_space_ridge,
+                    search_space_krr=search_space_krr,
                     include_bayesian_ridge=include_bayesian_ridge,
                     include_gp=include_gp,
                     random_state=random_state
@@ -364,9 +365,11 @@ class Main:
         run_predictive=False,
         include_knn=True,
         include_ridge=True,
+        include_krr=True,
         n_splits=5,
         search_space_knn=None,
         search_space_ridge=None,
+        search_space_krr=None,
         include_bayesian_ridge=True,
         include_gp=True,
         random_state=None
@@ -383,7 +386,7 @@ class Main:
                     y_train,
                     X_test,
                     y_test,
-                    search_space_knn=search_space_knn,
+                    search_space=search_space_knn,
                     n_splits=n_splits,
                     random_state=random_state
                 )
@@ -398,7 +401,7 @@ class Main:
                     y_train,
                     X_test,
                     y_test,
-                    search_space_knn=search_space_knn,
+                    search_space=search_space_knn,
                     n_splits=n_splits,
                     random_state=random_state
                 )
@@ -431,6 +434,7 @@ class Main:
                     y_train,
                     X_test,
                     y_test,
+                    search_space=None,
                     n_splits=n_splits,
                     random_state=random_state
                 )
@@ -445,7 +449,7 @@ class Main:
                     y_train,
                     X_test,
                     y_test,
-                    search_space_knn,
+                    search_space=None,
                     n_splits=n_splits,
                     random_state=random_state
                 )
@@ -466,6 +470,56 @@ class Main:
                     random_state=random_state
                 )
                 res["Ridge Pred"] = utilities
+                
+        if include_krr:
+            kernel = C(1.0, constant_value_bounds=(1e-7, 1e7)) * RBF(length_scale=1.0, length_scale_bounds=(1e-7, 1e7))
+            krpm = KernelRidgePredictionMachine(kernel=kernel, autotune=True)
+            if run_v1:
+                utilities = CPDM.online_v1(
+                    krpm,
+                    self.Decisions,
+                    self.utility_func,
+                    X_train,
+                    y_train,
+                    X_test,
+                    y_test,
+                    search_space=search_space_krr,
+                    n_splits=n_splits,
+                    random_state=random_state
+                )
+                res["v1 - KRR"] = utilities
+                
+            if run_v2:
+                utilities = CPDM.online_v2(
+                    krpm,
+                    self.Decisions,
+                    self.utility_func,
+                    X_train,
+                    y_train,
+                    X_test,
+                    y_test,
+                    search_space=search_space_krr,
+                    n_splits=n_splits,
+                    random_state=random_state
+                )
+                res["v2 - KRR"] = utilities
+                
+            if run_predictive:
+                kernel = C(1.0, constant_value_bounds=(1e-7, 1e7)) * RBF(length_scale=1.0, length_scale_bounds=(1e-7, 1e7))
+                krr = KernelRidge(kernel=kernel)
+                utilities = PredictiveBinaryDecisionMaking.online(
+                    krr,
+                    self.utility_func,
+                    self.threshold,
+                    X_train,
+                    y_train,
+                    X_test,
+                    y_test,
+                    param_grid=search_space_krr,
+                    n_splits=n_splits,
+                    random_state=random_state
+                )
+                res["KRR Pred"] = utilities
                 
         if include_bayesian_ridge:
             bayes_ridge = BayesianRidge()

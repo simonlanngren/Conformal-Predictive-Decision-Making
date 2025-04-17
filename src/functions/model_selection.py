@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.model_selection import GridSearchCV, KFold
-from online_cp.CPS import NearestNeighboursPredictionMachine
+from online_cp.CPS import NearestNeighboursPredictionMachine, KernelRidgePredictionMachine
+from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
 from joblib import Parallel, delayed
 import sys
 
@@ -23,14 +24,11 @@ class ModelSelection:
     @staticmethod
     def online_cpdm_model_selection_knn(X_train, y_train, search_space, n_splits=5, random_state=None):
         def eval_sample(cps_model, x, y, epsilon=0.05):
-            try:
-                tau = np.random.uniform(0, 1)
-                cpd = cps_model.predict_cpd(x=x)
-                Gamma = cpd.predict_set(tau=tau, epsilon=epsilon)
-                return cpd.err(Gamma=Gamma, y=y)
-            except IndexError as e:
-                print(f"IndexError for input x={x}, y={y}: {e}")
-                sys.exit(1)
+            tau = np.random.uniform(0, 1)
+            cpd = cps_model.predict_cpd(x=x)
+            Gamma = cpd.predict_set(tau=tau, epsilon=epsilon)
+            return cpd.err(Gamma=Gamma, y=y)
+
 
         def eval_k(k, kf, X, y):
             cv_errors = []
@@ -61,6 +59,62 @@ class ModelSelection:
         best_k, _ = min(results, key=lambda x: x[1])
         
         return best_k
+    
+    @staticmethod
+    def online_cpdm_model_selection_krr(X_train, y_train, search_space, n_splits=5, random_state=None):
+        def eval_sample(cps_model, x, y, epsilon=0.05):
+            tau = np.random.uniform(0, 1)
+            cpd = cps_model.predict_cpd(x=x)
+            Gamma = cpd.predict_set(tau=tau, epsilon=epsilon)
+            return cpd.err(Gamma=Gamma, y=y)
+
+        def eval_params(params, kf, X, y):
+            cv_errors = []
+            kernel = C(params['kernel__k1__constant_value']) * RBF(length_scale=params['kernel__k2__length_scale'])
+
+            for train_idx, val_idx in kf.split(X):
+                X_tr, y_tr = X[train_idx], y[train_idx]
+                X_val, y_val = X[val_idx], y[val_idx]
+
+                cps = KernelRidgePredictionMachine(kernel=kernel, a=params['alpha'])
+                cps.learn_initial_training_set(X_tr, y_tr)
+
+                val_errors = Parallel(n_jobs=-1)(
+                    delayed(eval_sample)(cps, x, y)
+                    for x, y in zip(X_val, y_val)
+                )
+
+                cv_errors.append(np.mean(val_errors))
+
+            return params, np.mean(cv_errors)
+
+        # Setup
+        kf = KFold(n_splits=n_splits, shuffle=True, random_state=random_state)
+
+        from itertools import product
+        all_param_combinations = list(product(
+            search_space["alpha"],
+            search_space["kernel__k1__constant_value"],
+            search_space["kernel__k2__length_scale"]
+        ))
+
+        param_dicts = [
+            {
+                "alpha": alpha,
+                "kernel__k1__constant_value": const_val,
+                "kernel__k2__length_scale": length_scale
+            }
+            for alpha, const_val, length_scale in all_param_combinations
+        ]
+
+        results = Parallel(n_jobs=-1)(
+            delayed(eval_params)(params, kf, X_train, y_train)
+            for params in param_dicts
+        )
+
+        best_params, _ = min(results, key=lambda x: x[1])
+
+        return best_params
 
     @staticmethod
     def evaluate(X_train, y_train, X_test, y_test, model, scoring_function):

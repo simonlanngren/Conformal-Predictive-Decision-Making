@@ -75,6 +75,10 @@ class CPDM:
             y_seen = y_train_d
 
             if isinstance(cps, NearestNeighboursPredictionMachine):
+                # Ensure the labels are distinct for KNN
+                y_seen   += np.random.normal(scale=1e-6, size=y_seen.shape)
+                y_test_d += np.random.normal(scale=1e-6, size=y_test_d.shape)
+                
                 # Hyperparameter tuning for k
                 best_k = ModelSelection.online_cpdm_model_selection_knn(
                     X_seen,

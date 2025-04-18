@@ -76,7 +76,7 @@ class ModelSelection:
                 X_tr, y_tr = X[train_idx], y[train_idx]
                 X_val, y_val = X[val_idx], y[val_idx]
 
-                cps = KernelRidgePredictionMachine(kernel=kernel, autotune=True)
+                cps = KernelRidgePredictionMachine(kernel=kernel, a=params['alpha'])
                 cps.learn_initial_training_set(X_tr, y_tr)
 
                 val_errors = Parallel(n_jobs=-1)(

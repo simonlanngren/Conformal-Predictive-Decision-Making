@@ -472,7 +472,7 @@ class Main:
                 res["Ridge Pred"] = utilities
                 
         if include_krr:
-            kernel = C(1.0, constant_value_bounds=(1e-7, 1e7)) * RBF(length_scale=1.0, length_scale_bounds=(1e-7, 1e7))
+            kernel = C(1.0) * RBF(length_scale=1.0)
             krpm = KernelRidgePredictionMachine(kernel=kernel)
             if run_v1:
                 utilities = CPDM.online_v1(

@@ -219,7 +219,7 @@ class Main:
                 return theta_opt, func_min
             
             gp = GaussianProcessRegressor(
-                kernel = C(1.0, constant_value_bounds=(1e-7, 1e7)) * RBF(length_scale=1.0, length_scale_bounds=(1e-7, 1e7)),
+                kernel = C(1.0, constant_value_bounds=(1e-10, 1e10)) * RBF(length_scale=1.0, length_scale_bounds=(1e-20, 1e10)),
                 optimizer = custom_optimizer, 
                 normalize_y = True,
                 random_state = random_state
@@ -341,7 +341,7 @@ class Main:
             best_params_krr, _ = ModelSelection.model_selection(
                 X_train,
                 y_train,
-                estimator=KernelRidge(kernel=C(1.0, constant_value_bounds=(1e-7, 1e7)) * RBF(length_scale=1.0, length_scale_bounds=(1e-7, 1e7))),
+                estimator=KernelRidge(kernel=C(1.0, constant_value_bounds=(1e-10, 1e10)) * RBF(length_scale=1.0, length_scale_bounds=(1e-20, 1e10))),
                 param_grid=search_space_krr,
                 n_splits=n_splits,
                 random_state=random_state,
@@ -505,7 +505,7 @@ class Main:
                 res["v2 - KRR"] = utilities
                 
             if run_predictive:
-                kernel = C(1.0, constant_value_bounds=(1e-7, 1e7)) * RBF(length_scale=1.0, length_scale_bounds=(1e-7, 1e7))
+                kernel = C(1.0, constant_value_bounds=(1e-10, 1e10)) * RBF(length_scale=1.0, length_scale_bounds=(1e-20, 1e10))
                 krr = KernelRidge(kernel=kernel)
                 utilities = PredictiveBinaryDecisionMaking.online(
                     krr,
@@ -553,7 +553,7 @@ class Main:
                 return theta_opt, func_min
             
             gp = GaussianProcessRegressor(
-                kernel = C(1.0, constant_value_bounds=(1e-7, 1e7)) * RBF(length_scale=1.0, length_scale_bounds=(1e-7, 1e7)),
+                kernel = C(1.0, constant_value_bounds=(1e-10, 1e10)) * RBF(length_scale=1.0, length_scale_bounds=(1e-20, 1e10)),
                 optimizer = custom_optimizer, 
                 normalize_y = True,
                 random_state = random_state

@@ -111,11 +111,22 @@ class CPDM:
                 expected_utility = Utility.compute_expected_utility(cpd.y_vals, utility_func, d)
                 expected_utilities_d.append(expected_utility)
 
-                # Learn new object
-                cps_d.learn_one(x=x, y=y, precomputed=precomputed)  # We pass precomputed as an argument to avoid redundant computations
-                
                 X_seen = np.append(X_seen, [x], axis=0)
                 y_seen = np.append(y_seen, [y])
+                
+                if isinstance(cps, KernelRidgePredictionMachine):                    
+                    best_params = ModelSelection.online_cpdm_model_selection_krr(
+                        X_seen,
+                        y_seen,
+                        search_space=search_space,
+                        n_splits=n_splits,
+                        random_state=random_state
+                    )
+                    kernel = C(best_params['kernel__k1__constant_value']) * RBF(length_scale=best_params['kernel__k2__length_scale'])
+                    cps_d = KernelRidgePredictionMachine(kernel=kernel, a=best_params['alpha'])
+                    cps_d.learn_initial_training_set(X_seen, y_seen)
+                else: 
+                    cps_d.learn_one(x=x, y=y, precomputed=precomputed)
                     
                 if isinstance(cps, NearestNeighboursPredictionMachine):
                     best_k = ModelSelection.online_cpdm_model_selection_knn(
@@ -126,19 +137,7 @@ class CPDM:
                         random_state=random_state
                     )
                     cps_d.k = best_k
-                
-                if isinstance(cps, KernelRidgePredictionMachine):                    
-                    best_params = ModelSelection.online_cpdm_model_selection_krr(
-                        X_seen,
-                        y_seen,
-                        search_space=search_space,
-                        n_splits=n_splits,
-                        random_state=random_state
-                    )
-                    cps_d.kernel = C(best_params['kernel__k1__constant_value']) * RBF(length_scale=best_params['kernel__k2__length_scale'])
-                    cps_d.a = best_params['alpha']
 
-            expected_utilities_d = []
             expected_utilities.append(expected_utilities_d)
 
         _, utilities = Utility.make_decisions(expected_utilities, utility_func, y_test)

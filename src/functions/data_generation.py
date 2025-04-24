@@ -7,9 +7,9 @@ from sklearn.preprocessing import MinMaxScaler
 
 class DataGeneration:    
     @staticmethod
-    def generate_data(n_samples=10000, n_features=20, n_informative=5, relationship='make_regression', noise=0.1, random_state=None):
+    def generate_data(n_samples=10000, n_features=20, relationship='make_regression', noise=0.1, random_state=None):
         if relationship == 'make_regression':
-            X, y = make_regression(n_samples=n_samples, n_features=n_features, n_informative= n_informative, noise=noise, random_state=random_state)
+            X, y = make_regression(n_samples=n_samples, n_features=n_features, n_informative=n_features, noise=noise, random_state=random_state)
             
         elif relationship == 'friedman1':
             X, y = make_friedman1(n_samples=n_samples, n_features=n_features, noise=noise, random_state=random_state)
@@ -17,20 +17,8 @@ class DataGeneration:
         elif relationship == 'friedman2':
             X, y = make_friedman2(n_samples=n_samples, noise=noise, random_state=random_state)
             
-            # Friedman2 only supports 4 features
-            friedman2_n_features = 4
-            if n_features > friedman2_n_features:
-                uninformative_features = np.random.rand(n_samples, n_features - friedman2_n_features)
-                X = np.hstack((X, uninformative_features))
-            
         elif relationship == 'friedman3':
             X, y = make_friedman3(n_samples=n_samples, noise=noise, random_state=random_state)
-            
-            # Friedman3 only supports 4 features
-            friedman3_n_features = 4
-            if n_features > friedman3_n_features:
-                uninformative_features = np.random.rand(n_samples, n_features - friedman3_n_features)
-                X = np.hstack((X, uninformative_features))
             
         else:
             raise ValueError(f"Unsupported relationship: {relationship}")

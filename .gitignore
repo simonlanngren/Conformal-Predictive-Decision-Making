@@ -1,31 +1,37 @@
-# Byte-compiled / optimized / DLL files
+# Byte-compiled / optimized / cache files
 __pycache__/
 *.py[cod]
-*$py.class
+*.so
 
 # Virtual environments
 .venv/
 venv/
 env/
 
-# VS Code
+# Editor and OS-specific files
 .vscode/
-
-# macOS system files
 .DS_Store
 
-# Jupyter
+# Jupyter notebooks
 .ipynb_checkpoints/
 
-# Testing / coverage
+# Coverage and test artifacts
 .pytest_cache/
 .coverage
-coverage.xml
+*.cover
 htmlcov/
-.cache
+.cache/
 
-# Model artifacts and intermediate build outputs
-*.lock
+# Ignore output data but keep folder structure
+data/plots/*
+!data/plots/.gitignore
+
+data/raw_data/*
+!data/raw_data/.gitignore
+
+# Ignore all generated result files (optional fallback)
+*.pdf
+*.json
 
 # Python environment managers
 .python-version

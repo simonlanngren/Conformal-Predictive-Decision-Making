@@ -1,4 +1,4 @@
-# Benchmarking Conformal Predictive Decision Making
+# Conformal Predictive Decision Making: Experimental Setup 
 
 This project provides a comprehensive framework for benchmarking Conformal Predictive Decision Making (CPDM) against alternative methods under both inductive and online learning settings. It includes implementations of:
 

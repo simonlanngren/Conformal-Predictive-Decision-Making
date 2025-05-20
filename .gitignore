@@ -1,10 +1,32 @@
-# IDE
-.vscode/
-.idea/
-
-# Python cache
+# Byte-compiled / optimized / DLL files
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
 
-# Dependency managers (optional)
+# Virtual environments
+.venv/
+venv/
+env/
+
+# VS Code
+.vscode/
+
+# macOS system files
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+.cache
+
+# Model artifacts and intermediate build outputs
 *.lock
+
+# Python environment managers
+.python-version
+uv.lock

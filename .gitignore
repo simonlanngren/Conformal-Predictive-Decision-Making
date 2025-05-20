@@ -1,5 +1,10 @@
-# Ignore Python cache files and folders
-__pycache__/
-*.py[cod]
-
+# IDE
 .vscode/
+.idea/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Dependency managers (optional)
+*.lock

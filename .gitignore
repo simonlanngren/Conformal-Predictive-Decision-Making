@@ -26,8 +26,7 @@ htmlcov/
 data/raw_data/*
 !data/raw_data/.gitignore
 
-# Ignore all generated result files (optional fallback)
-*.pdf
+# Ignore all generated result files
 *.json
 
 # Python environment managers

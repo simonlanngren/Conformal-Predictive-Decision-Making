@@ -92,7 +92,7 @@ class Plots:
 
             plt.xlabel("Test Case")
             plt.ylabel("Average Utility")
-            plt.legend(title="Method")
+            plt.legend(title="Method", loc="lower right")
             plt.grid(True)
             plt.tight_layout()
 
@@ -176,7 +176,7 @@ class Plots:
 
             plt.xlabel("Test Case")
             plt.ylabel("Cumulative Regret")
-            plt.legend(title="Method")
+            plt.legend(title="Method", loc="upper left")
             plt.grid(True)
             plt.tight_layout()
 

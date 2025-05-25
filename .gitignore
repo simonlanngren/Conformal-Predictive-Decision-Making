@@ -22,10 +22,7 @@ env/
 htmlcov/
 .cache/
 
-# Ignore output data but keep folder structure
-data/plots/*
-!data/plots/.gitignore
-
+# Ignore output data but keep file structure
 data/raw_data/*
 !data/raw_data/.gitignore
 

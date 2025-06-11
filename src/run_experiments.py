@@ -22,10 +22,10 @@ experiments = [
     # "configs.1_v1_vs_v2_standard.f3_v1_vs_v2_standard",
     # "configs.1_v1_vs_v2_standard.linear_v1_vs_v2_standard",
 
-    # "configs.2_v1_vs_v2_slightly_skewed.f1_v1_vs_v2_slightly_skewed",
-    # "configs.2_v1_vs_v2_slightly_skewed.f2_v1_vs_v2_slightly_skewed",
-    # "configs.2_v1_vs_v2_slightly_skewed.f3_v1_vs_v2_slightly_skewed",
-    # "configs.2_v1_vs_v2_slightly_skewed.linear_v1_vs_v2_slightly_skewed",
+    "configs.2_v1_vs_v2_slightly_skewed.f1_v1_vs_v2_slightly_skewed",
+    "configs.2_v1_vs_v2_slightly_skewed.f2_v1_vs_v2_slightly_skewed",
+    "configs.2_v1_vs_v2_slightly_skewed.f3_v1_vs_v2_slightly_skewed",
+    "configs.2_v1_vs_v2_slightly_skewed.linear_v1_vs_v2_slightly_skewed",
 
     # "configs.3_v1_vs_v2_extremely_skewed.f1_v1_vs_v2_extremely_skewed",
     # "configs.3_v1_vs_v2_extremely_skewed.f2_v1_vs_v2_extremely_skewed",
@@ -150,12 +150,12 @@ experiments = [
     # "configs.27_v1_vs_v2_noise_slightly_skewed_data.f1_v1_vs_v2_noise_slightly_skewed",
     # "configs.27_v1_vs_v2_noise_slightly_skewed_data.f2_v1_vs_v2_noise_slightly_skewed",
     # "configs.27_v1_vs_v2_noise_slightly_skewed_data.f3_v1_vs_v2_noise_slightly_skewed",
-    "configs.27_v1_vs_v2_noise_slightly_skewed_data.linear_v1_vs_v2_noise_slightly_skewed",
+    # "configs.27_v1_vs_v2_noise_slightly_skewed_data.linear_v1_vs_v2_noise_slightly_skewed",
     
-    "configs.28_v1_vs_v2_noise_extremely_skewed_data.f1_v1_vs_v2_noise_extremely_skewed_data",
-    "configs.28_v1_vs_v2_noise_extremely_skewed_data.f2_v1_vs_v2_noise_extremely_skewed_data",
-    "configs.28_v1_vs_v2_noise_extremely_skewed_data.f3_v1_vs_v2_noise_extremely_skewed_data",
-    "configs.28_v1_vs_v2_noise_extremely_skewed_data.linear_v1_vs_v2_noise_extremely_skewed_data",
+    # "configs.28_v1_vs_v2_noise_extremely_skewed_data.f1_v1_vs_v2_noise_extremely_skewed_data",
+    # "configs.28_v1_vs_v2_noise_extremely_skewed_data.f2_v1_vs_v2_noise_extremely_skewed_data",
+    # "configs.28_v1_vs_v2_noise_extremely_skewed_data.f3_v1_vs_v2_noise_extremely_skewed_data",
+    # "configs.28_v1_vs_v2_noise_extremely_skewed_data.linear_v1_vs_v2_noise_extremely_skewed_data",
     
     # "configs.target_plots.friedman1_target_distribution",
     # "configs.target_plots.friedman2_target_distribution",

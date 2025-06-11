@@ -418,7 +418,7 @@ class Main:
                 "KNeighborsRegressor": "KNN",
             }
             res[
-                f"{name_map.get(model.__class__.__name__, model.__class__.__name__)} - CPDM v2"
+                f"{name_map.get(model.__class__.__name__, model.__class__.__name__)} - CPDM"
             ] = utilities
 
             if run_predictive:
@@ -432,7 +432,7 @@ class Main:
                     y_test,
                 )
                 res[
-                    f"{name_map.get(model.__class__.__name__, model.__class__.__name__)} - PPDM"
+                    f"{name_map.get(model.__class__.__name__, model.__class__.__name__)}"
                 ] = utilities
 
         for model in bayesian_models:
@@ -446,8 +446,8 @@ class Main:
                 y_test,
             )
             name_map = {
-                "GaussianProcessRegressor": "GPR - BDT",
-                "BayesianRidge": "BRR - BDT",
+                "GaussianProcessRegressor": "GPR",
+                "BayesianRidge": "BRR",
             }
             res[name_map.get(model.__class__.__name__, model.__class__.__name__)] = (
                 utilities
@@ -607,7 +607,7 @@ class Main:
                     n_splits=n_splits,
                     random_state=random_state,
                 )
-                res["KNN - CPDM v1"] = utilities
+                res["NNPM v1"] = utilities
 
             if run_v2:
                 utilities = CPDM.online_v2(
@@ -622,7 +622,7 @@ class Main:
                     n_splits=n_splits,
                     random_state=random_state,
                 )
-                res["KNN - CPDM v2"] = utilities
+                res["NNPM v2"] = utilities
 
             if run_predictive:
                 knn = KNeighborsRegressor(metric="euclidean", n_jobs=-1)
@@ -638,7 +638,7 @@ class Main:
                     n_splits=n_splits,
                     random_state=random_state,
                 )
-                res["KNN - PPDM"] = utilities
+                res["KNN"] = utilities
 
         if include_ridge:
             rpm = RidgePredictionMachine(a=0)
@@ -655,7 +655,7 @@ class Main:
                     n_splits=n_splits,
                     random_state=random_state,
                 )
-                res["RR - CPDM v1"] = utilities
+                res["LSPM v1"] = utilities
 
             if run_v2:
                 utilities = CPDM.online_v2(
@@ -670,7 +670,7 @@ class Main:
                     n_splits=n_splits,
                     random_state=random_state,
                 )
-                res["RR - CPDM v2"] = utilities
+                res["LSPM v2"] = utilities
 
             if run_predictive:
                 ridge = Ridge(random_state=random_state)
@@ -686,7 +686,7 @@ class Main:
                     n_splits=n_splits,
                     random_state=random_state,
                 )
-                res["RR - PPDM"] = utilities
+                res["RR"] = utilities
 
         if include_krr:
             kernel = RBF(length_scale=1.0)
@@ -736,7 +736,7 @@ class Main:
                     n_splits=n_splits,
                     random_state=random_state,
                 )
-                res["KRR - PPDM"] = utilities
+                res["KRR"] = utilities
 
         if include_bayesian_ridge:
             bayes_ridge = BayesianRidge()
@@ -749,7 +749,7 @@ class Main:
                 X_test,
                 y_test,
             )
-            res["BRR - BDT"] = utilities
+            res["BRR"] = utilities
 
         if include_gp:
 
@@ -769,6 +769,6 @@ class Main:
             utilities = BDT.online(
                 gp, self.Decisions, self.utility_func, X_train, y_train, X_test, y_test
             )
-            res["GPR - BDT"] = utilities
+            res["GPR"] = utilities
 
         return res

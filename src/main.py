@@ -704,7 +704,7 @@ class Main:
                     n_splits=n_splits,
                     random_state=random_state,
                 )
-                res["KRR - CPDM v1"] = utilities
+                res["KRRPM v1"] = utilities
 
             if run_v2:
                 utilities = CPDM.online_v2(
@@ -719,7 +719,7 @@ class Main:
                     n_splits=n_splits,
                     random_state=random_state,
                 )
-                res["KRR - CPDM v2"] = utilities
+                res["KRRPM v2"] = utilities
 
             if run_predictive:
                 kernel = RBF(length_scale=1.0, length_scale_bounds=(1e-10, 1e10))

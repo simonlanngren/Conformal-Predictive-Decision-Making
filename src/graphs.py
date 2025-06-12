@@ -24,6 +24,10 @@ KEY_MAPPING_ONLINE = {
     "GPR - BDT": "GPR",
     "BRR - BDT": "BRR",
     "Optimal": "Optimal",
+    "NNPM v1": "NNPM v1",
+    "NNPM v2": "NNPM v2",
+    "LSPM v1": "LSPM v1",
+    "LSPM v2": "LSPM v2",   
 }
 
 KEY_MAPPING_INDUCTIVE = {
@@ -40,13 +44,13 @@ KEY_MAPPING_INDUCTIVE = {
 def determine_output_folder(filename):
     """Determine the output folder based on the filename."""
     if "f1" in filename:
-        return os.path.join("data", "new_plots", "friedman1")
+        return os.path.join("data", "plots", "friedman1")
     elif "f2" in filename:
-        return os.path.join("data", "new_plots", "friedman2")
+        return os.path.join("data", "plots", "friedman2")
     elif "f3" in filename:
-        return os.path.join("data", "new_plots", "friedman3")
+        return os.path.join("data", "plots", "friedman3")
     elif "linear" in filename:
-        return os.path.join("data", "new_plots", "linear")
+        return os.path.join("data", "plots", "linear")
     else:
         raise ValueError(f"Could not determine output folder for file: {filename}")
 
